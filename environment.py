@@ -34,6 +34,7 @@ class Greenhouse():
         self.energy_consumption = energy_consumption
         self.energy_consumed = 0
         self.coolzed_down = 0 #lake
+        self.heatz_up = 0 #lake
 
 
 # %%
@@ -62,6 +63,7 @@ class Environment:
         self.H_greenhouse_temp = []
         self.H_greenhouse_energy_consumption = []
         self.H_greenhouse_coolingThing = [] #lake
+        self.H_greenhouse_heatingThing = []
         self.H_hour = []
         self.H_minute = []
 
@@ -157,10 +159,15 @@ class Environment:
         if self.greenhouse.heating:
             self.greenhouse.temp += 0.1
             self.greenhouse.energy_consumed += self.greenhouse.energy_consumption
+            self.greenhouse.heatz_up = 1
+        else:
+            self.greenhouse.heatz_up = 0
 
         if self.greenhouse.cooling:
-            self.greenhouse.temp -= 0.1
-            self.greenhouse.coolzed_down += 0.1 #lake
+            self.greenhouse.temp -= 0.15
+            self.greenhouse.coolzed_down = 1 #lake
+        else:
+            self.greenhouse.coolzed_down = 0 #lake
 
     # -----------------------------------------------------------------------------------
     def make_history(self):
@@ -171,19 +178,20 @@ class Environment:
         self.H_hour = self.hour
         self.H_minute = self.minute
         self.H_greenhouse_coolingThing.append(self.greenhouse.coolzed_down) #lake
+        self.H_greenhouse_heatingThing.append(self.greenhouse.heatz_up) #lake
 
     # -----------------------------------------------------------------------------------
     def get_state(self):
         data = []
-        #data.append(self.step)
-        #data.append(self.day)
-        #data.append(self.hour)
-        #data.append(self.minute)
+        data.append(self.step)
+        data.append(self.day)
+        data.append(self.hour)
+        data.append(self.minute)
         data.append(self.temp)
-        #data.append(self.sunlight)
+        data.append(self.sunlight)
         data.append(self.greenhouse.temp)
-        #data.append(self.greenhouse.heating)
-        #data.append(self.greenhouse.cooling)
+        data.append(self.greenhouse.heating)
+        data.append(self.greenhouse.cooling)
         #data.append(self.greenhouse.energy_consumption)
         return data
 

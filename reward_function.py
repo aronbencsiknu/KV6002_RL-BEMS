@@ -9,8 +9,18 @@ crit_time_actual = 0
 
 #indoor temp history 
 
-
-def calculate_reward(self, indoor_temp, indoor_temp_history, energy_consumption, crit_max_temp,crit_min_temp ):
+class Reward:
+    def _innit_(self, indoor_temp, indoor_temp_history, energy_consumption, max_temp, min_temp, crit_max_temp,crit_min_temp, crit_time):
+                self.indoor_temp = indoor_temp
+                self.indoor_temp_history = indoor_temp_history
+                self.energy_consumption = energy_consumption
+                self.max_temp = max_temp
+                self.min_temp = min_temp
+                self.crit_max_temp = crit_max_temp
+                self.crit_min_temp = crit_min_temp
+                self.crit_time = crit_time
+    
+def calculate_reward(self):
 
         # reward weighing
         r1_w = 1.0
@@ -19,9 +29,9 @@ def calculate_reward(self, indoor_temp, indoor_temp_history, energy_consumption,
         r4_w = 1.0
 
         #!!placeholder values!!
-        max_temp = 20
-        min_temp = 15
-        temp_midpoint = (max_temp + min_temp) / 2  # midpoint
+        self.max_temp = 20
+        self.min_temp = 15
+        temp_midpoint = (self.max_temp + self.min_temp) / 2  # midpoint
 
         # !!placeholder values!!
         max_allowed_temp_change = 5  # degrees/minute
@@ -29,19 +39,19 @@ def calculate_reward(self, indoor_temp, indoor_temp_history, energy_consumption,
         temp_change = abs(indoor_temp - prev_indoor_temp)
 
         
-        if crit_min_temp <= indoor_temp <= crit_max_temp #each call +1 min
+        if self.crit_min_temp <= self.indoor_temp <= self.crit_max_temp: #each call +1 min
             crit_time_actual =+ 1
-        else
-            crit time_actual = 0
+        else:
+            crit_time_actual = 0
             
         # Calculate reward for indoor temperature control
-        if min_temp <= indoor_temp <= max_temp:
+        if self.min_temp <= self.indoor_temp <= self.max_temp:
             r1 = 1.0
         else:
-            r1 = -abs(indoor_temp - temp_midpoint)
+            r1 = -abs(self.indoor_temp - temp_midpoint)
 
         # Calculate reward for energy savings
-        if energy_consumption:
+        if self.energy_consumption:
             r2 = 0.0
         else:
             r2 = 1.0   
@@ -51,8 +61,8 @@ def calculate_reward(self, indoor_temp, indoor_temp_history, energy_consumption,
         else:
             r3 = -abs(max_allowed_temp_change - temp_change)
 
-        if crit_min_temp <= indoor_temp <= crit_max_temp or crit_time_actual > crit_time: #if in critical temp or 
-            r4 = -abs((indoor_temp - temp_midpoint)+crit_time_actual) 
+        if self.crit_min_temp <= self.indoor_temp <= self.crit_max_temp or crit_time_actual > self.crit_time: #if in critical temp or 
+            r4 = -abs((self.indoor_temp - temp_midpoint)+self.crit_time_actual) 
         else:
             r4 = 1.0 
             

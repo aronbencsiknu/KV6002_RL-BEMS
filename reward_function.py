@@ -10,7 +10,7 @@ crit_time_actual = 0
 #indoor temp history 
 
 class Reward:
-    def _innit_(self, indoor_temp, indoor_temp_history, energy_consumption, max_temp, min_temp, crit_max_temp,crit_min_temp, crit_time):
+    def __innit__(self, indoor_temp, indoor_temp_history, energy_consumption, max_temp, min_temp, crit_max_temp,crit_min_temp, crit_time):
                 self.indoor_temp = indoor_temp
                 self.indoor_temp_history = indoor_temp_history
                 self.energy_consumption = energy_consumption

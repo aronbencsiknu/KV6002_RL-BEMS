@@ -20,6 +20,18 @@ class Reward:
                 self.crit_min_temp = crit_min_temp
                 self.crit_time = crit_time
     
+    
+    def update(self, indoor_temp, indoor_temp_history, energy_consumption, max_temp, min_temp, crit_max_temp, crit_min_temp, crit_time):
+        self.indoor_temp = indoor_temp
+        self.indoor_temp_history = indoor_temp_history
+        self.energy_consumption = energy_consumption
+        self.max_temp = max_temp
+        self.min_temp = min_temp
+        self.crit_max_temp = crit_max_temp
+        self.crit_min_temp = crit_min_temp
+        self.crit_time = crit_time
+        
+
 def calculate_reward(self):
 
         # reward weighing

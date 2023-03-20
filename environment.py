@@ -30,12 +30,9 @@ class Greenhouse():
         self.temperature_diffusion_rate = 0.002  # how fast the greenhouse is affected by outside temperature
         # utilities
         self.heating = False
-        self.cooling = False
+        self.ventilation = False
         self.energy_consumption = energy_consumption
         self.energy_consumed = 0
-        self.coolzed_down = 0 #lake
-        self.heatz_up = 0 #lake
-
 
 # %%
 class Environment:
@@ -62,8 +59,8 @@ class Environment:
         self.H_sunlight = []
         self.H_greenhouse_temp = []
         self.H_greenhouse_energy_consumption = []
-        self.H_greenhouse_coolingThing = [] #lake
-        self.H_greenhouse_heatingThing = []
+        self.H_greenhouse_ventilation = [] #lake
+        self.H_greenhouse_heating = []
         self.H_hour = []
         self.H_minute = []
 
@@ -146,28 +143,16 @@ class Environment:
             self.greenhouse.temp += change
 
         # heating controls
-        # overwritten by RL output
-        """if self.greenhouse.temp < 20:
-            self.greenhouse.heating = True
-        else:
-            self.greenhouse.heating = False"""
-
         self.greenhouse.heating = heating
-        self.greenhouse.cooling = cooling
+        self.greenhouse.ventilation = cooling
 
         # change from heating
         if self.greenhouse.heating:
             self.greenhouse.temp += 0.1
             self.greenhouse.energy_consumed += self.greenhouse.energy_consumption
-            self.greenhouse.heatz_up = 1
-        else:
-            self.greenhouse.heatz_up = 0
 
-        if self.greenhouse.cooling:
+        if self.greenhouse.ventilation:
             self.greenhouse.temp -= 0.15
-            self.greenhouse.coolzed_down = 1 #lake
-        else:
-            self.greenhouse.coolzed_down = 0 #lake
 
     # -----------------------------------------------------------------------------------
     def make_history(self):
@@ -177,21 +162,21 @@ class Environment:
         self.H_greenhouse_energy_consumption.append(self.greenhouse.energy_consumed)
         self.H_hour = self.hour
         self.H_minute = self.minute
-        self.H_greenhouse_coolingThing.append(self.greenhouse.coolzed_down) #lake
-        self.H_greenhouse_heatingThing.append(self.greenhouse.heatz_up) #lake
+        self.H_greenhouse_ventilation.append(int(self.greenhouse.heating)) #lake
+        self.H_greenhouse_heating.append(int(self.greenhouse.ventilation)) #lake
 
     # -----------------------------------------------------------------------------------
     def get_state(self):
         data = []
-        data.append(self.step)
-        data.append(self.day)
+        #data.append(self.step)
+        #data.append(self.day)
         data.append(self.hour)
-        data.append(self.minute)
+        #data.append(self.minute)
         data.append(self.temp)
         data.append(self.sunlight)
         data.append(self.greenhouse.temp)
         data.append(self.greenhouse.heating)
-        data.append(self.greenhouse.cooling)
+        data.append(self.greenhouse.ventilation)
         #data.append(self.greenhouse.energy_consumption)
         return data
 

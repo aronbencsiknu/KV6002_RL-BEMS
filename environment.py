@@ -43,9 +43,9 @@ class Environment:
         self.hour = 0
         self.minute = 0
         # environment data
-        self.local_temps = [6, 5, 5, 4, 3, 4, 5, 7, 9, 11, 12, 13, 14, 16, 14, 13, 12, 11, 10, 9, 8, 7, 7, 6]
+        self.local_temps = [6, 5, 5, 4, 3, 4, 5, 7, 9, 11, 12, 13, 14, 16, 14, 13, 12, 11, 10, 9, 8, 7, 7, 6, 6]
         self.sunlight_intensities = [0.0, 0.0, 0.0, 0.0, 0.0, 0.1, 0.2, 0.4, 0.5, 0.6, 0.7, 0.9, 1, 1, 1, 1, 1, 0.9,
-                                     0.8, 0.7, 0.6, 0.4, 0.0, 0.0]
+                                     0.8, 0.7, 0.6, 0.4, 0.0, 0.0, 0.0]
         # environment
         self.temp = self.local_temps[0]
         self.sunlight = self.sunlight_intensities[0]
@@ -167,17 +167,26 @@ class Environment:
 
     # -----------------------------------------------------------------------------------
     def get_state(self):
+        """
+        collects relevant state info
+        :return: state list of env at time t
+        """
         data = []
-        #data.append(self.step)
-        #data.append(self.day)
+
+        # environment data
         data.append(self.hour)
-        #data.append(self.minute)
         data.append(self.temp)
         data.append(self.sunlight)
+
+        # greenhouse data
         data.append(self.greenhouse.temp)
         data.append(self.greenhouse.heating)
         data.append(self.greenhouse.ventilation)
-        #data.append(self.greenhouse.energy_consumption)
+
+        #weather forecast
+        data.append(self.local_temps[self.hour + 1])
+        data.append(self.sunlight_intensities[self.hour + 1])
+
         return data
 
     def get_custom_xcticks(self, historical_data):
@@ -185,11 +194,11 @@ class Environment:
         tick_names = []
         last_tick_name = 0
         for step in range(len(historical_data)):
-            if (step % 60 == 0):
+            if step % 60 == 0:
                 ticks.append(step)
                 tick_names.append(last_tick_name)
                 last_tick_name += 1
-                if (last_tick_name >= 24):
+                if last_tick_name >= 24:
                     last_tick_name = 0
         return ticks, tick_names
 

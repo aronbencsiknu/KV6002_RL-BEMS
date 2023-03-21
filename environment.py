@@ -162,8 +162,8 @@ class Environment:
         self.H_greenhouse_energy_consumption.append(self.greenhouse.energy_consumed)
         self.H_hour = self.hour
         self.H_minute = self.minute
-        self.H_greenhouse_ventilation.append(int(self.greenhouse.heating)) #lake
-        self.H_greenhouse_heating.append(int(self.greenhouse.ventilation)) #lake
+        self.H_greenhouse_ventilation.append(int(self.greenhouse.ventilation)) #lake
+        self.H_greenhouse_heating.append(int(self.greenhouse.heating)) #lake
 
     # -----------------------------------------------------------------------------------
     def get_state(self):

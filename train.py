@@ -20,8 +20,8 @@ from reward import Reward  # import reward mechanism for agent
 opt = Options()
 
 #LAKEvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-opt.num_episodes = 20
-opt.episode_len = 5000
+"""opt.num_episodes = 20
+opt.episode_len = 5000"""
 #LAKE^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 
@@ -29,13 +29,13 @@ opt.episode_len = 5000
 reward = Reward()
 
 #LAKEvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-reward.min_temp = int(data['minTemp'])
+"""reward.min_temp = int(data['minTemp'])
 reward.max_temp = int(data['maxTemp'])
 reward.max_allowed_temp_change = int(data['rateOfChange'])
 reward.crit_min_temp = int(data['critMinTemp'])
 reward.crit_max_temp = int(data['critMaxTemp'])
 reward.crit_time = int(data['maxTime'])
-#LAKE^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+"""#LAKE^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 
 
@@ -64,8 +64,8 @@ def experience_replay(model, batch_size, memory, obs_count, action_count, epoch_
             obs_t[i] = batch_vector[i, 0]
             obs_t_next[i] = batch_vector[i, 3]
 
-        prediction_at_t = model(torch.tensor(obs_t).float().to("cpu")).to("cpu")  # Use the model to predict an action using observations at t
-        prediction_at_t_next = model(torch.tensor(obs_t_next).float().to("cpu")).to("cpu")  # Use the model to predict an action using observations at t+1
+        prediction_at_t = model(torch.tensor(obs_t).float().to(opt.device)).to("cpu")  # Use the model to predict an action using observations at t
+        prediction_at_t_next = model(torch.tensor(obs_t_next).float().to(opt.device)).to("cpu")  # Use the model to predict an action using observations at t+1
 
         X = []
         y = []
@@ -91,8 +91,8 @@ def experience_replay(model, batch_size, memory, obs_count, action_count, epoch_
         loss = []
     for epoch in range(epoch_count):
         # Forward pass
-        y_pred = model(torch.tensor(X).float().to("cpu"))
-        loss_val = model.loss_fn(y_pred, torch.tensor(y).to("cpu"))
+        y_pred = model(torch.tensor(X).float().to(opt.device))
+        loss_val = model.loss_fn(y_pred, torch.tensor(y).to(opt.device))
 
         loss.append(loss_val)
         # Backward pass and optimization step
@@ -174,7 +174,7 @@ class DQN(nn.Module):
         return x
 
 
-model = DQN(obs_count, action_count).to("cpu")
+model = DQN(obs_count, action_count).to(opt.device)
 
 rewards = []
 loss = []
@@ -203,22 +203,22 @@ for episode in range(episodes):
 
             # exploit
             else:
-                action = model(torch.tensor(obs_t).float().to("cpu")).to("cpu")
+                action = model(torch.tensor(obs_t).float().to(opt.device)).to("cpu")
                 action_index = np.argmax(action)
 
             # set actions
             if action_index == 0:
                 heating = True
-                cooling = False
+                ventilation = False
             elif action_index == 1:
                 heating = False
-                cooling = True
+                ventilation = True
             else:
                 heating = False
-                cooling = False
+                ventilation = False
 
             # advance simulation with actions
-            environment.run(heating=heating, cooling=cooling, steps=1, output_format='none')
+            environment.run(heating=heating, cooling=ventilation, steps=1, output_format='none')
 
             # get environment state
             obs_t_next = environment.get_state()

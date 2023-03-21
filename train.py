@@ -1,3 +1,4 @@
+import json
 import numpy as np
 import matplotlib.pyplot as plt
 import torch
@@ -7,13 +8,35 @@ import random
 from pylab import rcParams
 from tqdm import tqdm
 
+#LAKEvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+with open('room1.json', 'r') as f:
+  data = json.load(f)
+#LAKE^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 from environment import Environment  # import environment simulation
 from options import Options  # import options
 from reward import Reward  # import reward mechanism for agent
+#from plot import Plot
 opt = Options()
+
+#LAKEvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+opt.num_episodes = 20
+opt.episode_len = 5000
+#LAKE^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 
 # we can declare max/min temps here, but we can also change them later via a setter method in Reward
 reward = Reward()
+
+#LAKEvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+reward.min_temp = int(data['minTemp'])
+reward.max_temp = int(data['maxTemp'])
+reward.max_allowed_temp_change = int(data['rateOfChange'])
+reward.crit_min_temp = int(data['critMinTemp'])
+reward.crit_max_temp = int(data['critMaxTemp'])
+reward.crit_time = int(data['maxTime'])
+#LAKE^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 
 
 def experience_replay(model, batch_size, memory, obs_count, action_count, epoch_count, loss):
@@ -41,8 +64,8 @@ def experience_replay(model, batch_size, memory, obs_count, action_count, epoch_
             obs_t[i] = batch_vector[i, 0]
             obs_t_next[i] = batch_vector[i, 3]
 
-        prediction_at_t = model(torch.tensor(obs_t).float().to("cuda")).to("cpu")  # Use the model to predict an action using observations at t
-        prediction_at_t_next = model(torch.tensor(obs_t_next).float().to("cuda")).to("cpu")  # Use the model to predict an action using observations at t+1
+        prediction_at_t = model(torch.tensor(obs_t).float().to("cpu")).to("cpu")  # Use the model to predict an action using observations at t
+        prediction_at_t_next = model(torch.tensor(obs_t_next).float().to("cpu")).to("cpu")  # Use the model to predict an action using observations at t+1
 
         X = []
         y = []
@@ -68,8 +91,8 @@ def experience_replay(model, batch_size, memory, obs_count, action_count, epoch_
         loss = []
     for epoch in range(epoch_count):
         # Forward pass
-        y_pred = model(torch.tensor(X).float().to("cuda"))
-        loss_val = model.loss_fn(y_pred, torch.tensor(y).to("cuda"))
+        y_pred = model(torch.tensor(X).float().to("cpu"))
+        loss_val = model.loss_fn(y_pred, torch.tensor(y).to("cpu"))
 
         loss.append(loss_val)
         # Backward pass and optimization step
@@ -151,7 +174,7 @@ class DQN(nn.Module):
         return x
 
 
-model = DQN(obs_count, action_count).to("cuda")
+model = DQN(obs_count, action_count).to("cpu")
 
 rewards = []
 loss = []
@@ -180,7 +203,7 @@ for episode in range(episodes):
 
             # exploit
             else:
-                action = model(torch.tensor(obs_t).float().to("cuda")).to("cpu")
+                action = model(torch.tensor(obs_t).float().to("cpu")).to("cpu")
                 action_index = np.argmax(action)
 
             # set actions
@@ -202,7 +225,7 @@ for episode in range(episodes):
 
             # calculate reward (will be a call to another file)
             reward_value = reward.calculate_reward(environment.greenhouse.temp, environment.H_temp, heating) # input current variables here
-            total_reward += reward
+            total_reward += reward_value
 
             # append to experience memory
             memory.append((obs_t, action_index, reward_value, obs_t_next))
@@ -217,5 +240,12 @@ for episode in range(episodes):
     print("\n Episode", episode+1, "of", opt.num_episodes, "| average reward: %.2f" % avg_reward,"\n")
 
 plot(environment)
+
+#LAKEvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+
+with open('data.json', 'w') as f:
+    json.dump(data, f)
+
+#LAKE^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 #torch.save(model, 'test01')

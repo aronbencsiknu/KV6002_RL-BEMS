@@ -1,4 +1,4 @@
-# KV6002_RL-BEMS
+# Greenhouse Energy Management using Deep Reinforcement Learning
 
 	- train.py (Aron) : contains the reinforcement learning agent controlling the heating and ventilation of the greenhouse
 	- environment.py (Jokubas): thermodynamic simulation of a greenhouse used to train the RL agent

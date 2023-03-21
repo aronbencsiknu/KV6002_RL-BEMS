@@ -38,7 +38,7 @@ class Reward:
             r1 = 1.0
             self.cooldown_time = 0
         elif self.crit_min_temp <= indoor_temp <= self.crit_max_temp and cooldown_time < (self.crit_time*5):
-            r1 = (-abs(indoor_temp - temp_midpoint))/2
+            r1 = -abs(indoor_temp - temp_midpoint)
             cooldown_time = 0
         else:
             r1 = -abs(indoor_temp - temp_midpoint)

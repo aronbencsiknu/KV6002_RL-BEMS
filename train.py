@@ -145,7 +145,7 @@ def plot(world):
     # plt.figure(figsize=(10, 5))
     custom_ticks, custom_tick_names = world.get_custom_xcticks(world.H_temp)
     plt.xticks(custom_ticks, custom_tick_names)
-    # custom_xticks = get_custom_xticks(len(world.H_greenhouse_temp))
+    #custom_xticks = get_custom_xticks(len(world.H_greenhouse_temp))
     plt.legend()
     plt.show()
 
@@ -168,18 +168,27 @@ class DQN(nn.Module):
         self.fc3 = nn.Linear(20, 20)
         self.fc4 = nn.Linear(20, action_count)
         self.activation = nn.LeakyReLU()
+        self.dropout = nn.Dropout(p=0.2)
 
         # training options
         self.loss_fn = nn.SmoothL1Loss()  # Huber loss
         self.optimizer = torch.optim.AdamW(self.parameters(), lr=opt.learning_rate)  # AdamW optimizer
 
     def forward(self, x):
+
+        # input layer
         x = self.fc1(x)
         x = self.activation(x)
+
+        # 1st hidden layer
         x = self.fc2(x)
         x = self.activation(x)
+
+        # 2nd hidden layer
         x = self.fc3(x)
         x = self.activation(x)
+
+        # output layer
         x = self.fc4(x)
 
         return x

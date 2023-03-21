@@ -6,9 +6,14 @@ from collections import deque
 import random
 from pylab import rcParams
 from tqdm import tqdm
-from environment import Environment  #import environment simulation
-from options import Options
+
+from environment import Environment  # import environment simulation
+from options import Options  # import options
+from reward import Reward  # import reward mechanism for agent
 opt = Options()
+
+# we can declare max/min temps here, but we can also change them later via a setter method in Reward
+reward = Reward()
 
 
 def experience_replay(model, batch_size, memory, obs_count, action_count, epoch_count, loss):
@@ -43,12 +48,12 @@ def experience_replay(model, batch_size, memory, obs_count, action_count, epoch_
         y = []
         i = 0
 
-        for obs_t, action, reward, _ in batch_vector:
+        for obs_t, action, reward_value, _ in batch_vector:
 
             X.append(obs_t)
 
             # bellman optimality equation
-            target = reward + opt.gamma * np.max(prediction_at_t_next[i].numpy())
+            target = reward_value + opt.gamma * np.max(prediction_at_t_next[i].numpy())
 
             # update action  value
             prediction_at_t[i, action] = target
@@ -196,11 +201,11 @@ for episode in range(episodes):
             obs_t_next = environment.get_state()
 
             # calculate reward (will be a call to another file)
-            reward = environment.calculate_reward(environment.greenhouse.temp, environment.H_temp, heating) # input current variables here
+            reward_value = reward.calculate_reward(environment.greenhouse.temp, environment.H_temp, heating) # input current variables here
             total_reward += reward
 
             # append to experience memory
-            memory.append((obs_t, action_index, reward, obs_t_next))
+            memory.append((obs_t, action_index, reward_value, obs_t_next))
             obs_t = obs_t_next
 
         # train DQN and calculate loss

@@ -1,6 +1,6 @@
 
 class Reward:
-    def __init__(self, indoor_temp_history, max_temp=25, min_temp=20, crit_max_temp=27, crit_min_temp=23, crit_time=30, max_allowed_temp_change=1):
+    def __init__(self, max_temp=25, min_temp=20, crit_max_temp=27, crit_min_temp=23, crit_time=30, max_allowed_temp_change=1):
         self.max_temp = max_temp
         self.min_temp = min_temp
         self.crit_max_temp = crit_max_temp

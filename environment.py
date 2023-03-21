@@ -204,7 +204,7 @@ class Environment:
 
     ######################################################################################################################################
 
-    def calculate_reward(self, indoor_temp, indoor_temp_history, energy_consumption):
+    """def calculate_reward(self, indoor_temp, indoor_temp_history, energy_consumption):
 
         # reward weighing
         r1_w = 1.0
@@ -248,7 +248,7 @@ class Environment:
 
         #total_reward = -math.log(abs(temp_midpoint - indoor_temp))
 
-        return total_reward
+        return total_reward"""
 
     ######################################################################################################################################
     def run(self, heating, cooling, steps, output_format):

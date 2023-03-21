@@ -17,7 +17,7 @@ class Reward:
         self.crit_time = crit_time
 
     def calculate_reward(self, indoor_temp, indoor_temp_history, heating):
-
+        cooldown_time = 0
         temp_midpoint = (self.max_temp + self.min_temp) / 2  # midpoint
 
         # !!placeholder values!!
@@ -29,12 +29,15 @@ class Reward:
         else:
             self.crit_time_actual = 0
 
+
         # Calculate reward for indoor temperature control
         if self.min_temp <= indoor_temp <= self.max_temp:
             r1 = 1.0
-            self.crit_time_actual = 0
+            cooldown_time =+ 1
         elif self.crit_min_temp <= indoor_temp <= self.crit_max_temp and self.crit_time_actual > self.crit_time:
             r1 = 1.0
+        elif self.crit_min_temp <= indoor_temp <= self.crit_max_temp and cooldown_time < (self.crit_time*5):
+            r1 = (-abs(indoor_temp - temp_midpoint))/2
         else:
             r1 = -abs(indoor_temp - temp_midpoint)
 
@@ -48,6 +51,10 @@ class Reward:
             r3 = 1.0
         else:
             r3 = -abs(self.max_allowed_temp_change - temp_change)
+
+        if cooldown_time >= (self.crit_time*5):
+            cooldown_time = 0
+        
 
         # reward weighing
         r1_w = 1.0

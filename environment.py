@@ -183,7 +183,7 @@ class Environment:
         data.append(self.greenhouse.heating)
         data.append(self.greenhouse.ventilation)
 
-        #weather forecast
+        # weather forecast
         data.append(self.local_temps[self.hour + 1])
         data.append(self.sunlight_intensities[self.hour + 1])
 

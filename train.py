@@ -6,7 +6,8 @@ import torch.nn as nn
 from collections import deque
 import random
 from pylab import rcParams
-from tqdm import tqdm
+#from tqdm import tqdm
+from progress.bar import Bar
 
 #LAKEvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 with open('room1.json', 'r') as f:
@@ -39,7 +40,7 @@ reward.crit_time = int(data['maxTime'])
 
 
 
-def experience_replay(model, batch_size, memory, obs_count, action_count, epoch_count, loss):
+def experience_replay(model, batch_size, memory, obs_count, epoch_count):
     """
     Creates the IIDD supervised data from the experience memory, to train the DQN
 
@@ -47,9 +48,7 @@ def experience_replay(model, batch_size, memory, obs_count, action_count, epoch_
     :param batch_size: size of random samples taken from memory
     :param memory: experience memory
     :param obs_count: observation size of the environment
-    :param action_count: possible actions in the environment
     :param epoch_count: epoch count for training the DQN
-    :param loss: loss of the DQN
     :return:
     """
     with torch.no_grad():
@@ -89,12 +88,13 @@ def experience_replay(model, batch_size, memory, obs_count, action_count, epoch_
         y = np.array(y) # create a numpy array from y
 
         loss = []
+
     for epoch in range(epoch_count):
         # Forward pass
         y_pred = model(torch.tensor(X).float().to(opt.device))
         loss_val = model.loss_fn(y_pred, torch.tensor(y).to(opt.device))
 
-        loss.append(loss_val)
+        loss.append(loss_val.item())
         # Backward pass and optimization step
         model.optimizer.zero_grad()
         loss_val.backward()
@@ -146,6 +146,7 @@ def plot(world):
     plt.legend()
     plt.show()
 
+
 environment = Environment(
     0.1,  # cloudiness
     0.5)  # energy_consumption
@@ -153,24 +154,30 @@ observation = environment.get_state()
 obs_count = len(observation)
 action_count = 3
 
+
 class DQN(nn.Module):
     def __init__(self, obs_count, action_count):
         super(DQN, self).__init__()
-        self.fc1 = nn.Linear(obs_count, 100)
-        self.relu1 = nn.LeakyReLU()
-        self.fc2 = nn.Linear(100, 100)
-        self.relu2 = nn.LeakyReLU()
-        self.fc3 = nn.Linear(100, action_count)
 
+        # layers
+        self.fc1 = nn.Linear(obs_count, 20)
+        self.fc2 = nn.Linear(20, 20)
+        self.fc3 = nn.Linear(20, 20)
+        self.fc4 = nn.Linear(20, action_count)
+        self.activation = nn.LeakyReLU()
+
+        # training options
         self.loss_fn = nn.SmoothL1Loss()  # Huber loss
         self.optimizer = torch.optim.AdamW(self.parameters(), lr=opt.learning_rate)  # AdamW optimizer
 
     def forward(self, x):
         x = self.fc1(x)
-        x = self.relu1(x)
+        x = self.activation(x)
         x = self.fc2(x)
-        x = self.relu2(x)
+        x = self.activation(x)
         x = self.fc3(x)
+        x = self.activation(x)
+        x = self.fc4(x)
         return x
 
 
@@ -179,21 +186,24 @@ model = DQN(obs_count, action_count).to(opt.device)
 rewards = []
 loss = []
 epsilons = []
-episodes = opt.num_episodes
-episode_len = opt.episode_len
 beta = opt.beta  # This is the epsilon decay rate
 batch_size = opt.batch_size
 memory = deque([], maxlen=2500)
 
-for episode in range(episodes):
+for episode in range(opt.num_episodes):
     environment = Environment(
         0.1,  # cloudiness
         0.5)  # energy_consumption
     obs_t = environment.get_state()
     total_reward = 0
-    epsilon = 1 / (1 + beta * (episode / action_count))
 
-    for ep_index in tqdm(range(episode_len)):
+    epsilon = 1 / (1 + opt.beta * (episode / action_count))
+    epsilons.append(epsilon)
+
+    bar_title = "Episode " + str(episode+1) + " of " + str(opt.num_episodes)
+    bar = Bar(bar_title, max=opt.episode_len)
+
+    for ep_index in range(opt.episode_len):
         with torch.no_grad():
             rand_num = np.random.random()
 
@@ -233,11 +243,16 @@ for episode in range(episodes):
 
         # train DQN and calculate loss
         if len(memory) > batch_size:
-            loss = experience_replay(model, batch_size, memory, obs_count, action_count, 1, loss)
+            loss = experience_replay(model, batch_size, memory, obs_count, opt.num_epochs)
+
+        bar.next()
+    bar.finish()
 
     rewards.append(total_reward)
-    avg_reward = total_reward/episode_len
-    print("\n Episode", episode+1, "of", opt.num_episodes, "| average reward: %.2f" % avg_reward,"\n")
+    avg_reward = total_reward/opt.episode_len
+    print("\t - avg reward: %.4f" % avg_reward, "\n"
+          "\t - avg loss: %.4f" % np.mean(np.asarray(loss)), "\n"
+          "\t - epsilon: %.4f" % epsilon,"\n")
 
 plot(environment)
 

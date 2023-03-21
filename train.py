@@ -129,13 +129,13 @@ class DQN(nn.Module):
     def __init__(self, obs_count, action_count):
         super(DQN, self).__init__()
         self.fc1 = nn.Linear(obs_count, 100)
-        self.relu1 = nn.ReLU()
+        self.relu1 = nn.LeakyReLU()
         self.fc2 = nn.Linear(100, 100)
-        self.relu2 = nn.ReLU()
+        self.relu2 = nn.LeakyReLU()
         self.fc3 = nn.Linear(100, action_count)
 
         self.loss_fn = nn.SmoothL1Loss()  # Huber loss
-        self.optimizer = torch.optim.AdamW(self.parameters(), lr=opt.learning_rate)
+        self.optimizer = torch.optim.AdamW(self.parameters(), lr=opt.learning_rate)  # AdamW optimizer
 
     def forward(self, x):
         x = self.fc1(x)
@@ -168,8 +168,12 @@ for episode in range(episodes):
     for ep_index in tqdm(range(episode_len)):
         with torch.no_grad():
             rand_num = np.random.random()
+
+            # explore
             if rand_num <= epsilon:
                 action_index = random.randint(0, action_count-1)
+
+            # exploit
             else:
                 action = model(torch.tensor(obs_t).float().to("cuda")).to("cpu")
                 action_index = np.argmax(action)
@@ -185,13 +189,21 @@ for episode in range(episodes):
                 heating = False
                 cooling = False
 
+            # advance simulation with actions
             environment.run(heating=heating, cooling=cooling, steps=1, output_format='none')
+
+            # get environment state
             obs_t_next = environment.get_state()
+
+            # calculate reward (will be a call to another file)
             reward = environment.calculate_reward(environment.greenhouse.temp, environment.H_temp, heating) # input current variables here
             total_reward += reward
+
+            # append to experience memory
             memory.append((obs_t, action_index, reward, obs_t_next))
             obs_t = obs_t_next
 
+        # train DQN and calculate loss
         if len(memory) > batch_size:
             loss = experience_replay(model, batch_size, memory, obs_count, action_count, 1, loss)
 

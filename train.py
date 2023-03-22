@@ -1,15 +1,19 @@
 import json
+import pathlib
+
 import numpy as np
 import torch
 import torch.nn as nn
 from collections import deque
 import random
 from progress.bar import ShadyBar
+from datetime import datetime
 
 from environment import Environment  # import environment simulation
 from options import Options  # import options
 from reward import Reward  # import reward mechanism for agent
 from plot import Plot  # import environment plotting
+from model import DQN
 
 # from plotting import Plot
 opt = Options()
@@ -20,6 +24,17 @@ reward = Reward()
 # we can change the desired plotting colours here
 plotting = Plot()
 
+environment = Environment(
+    0.1,  # cloudiness
+    0.5)  # energy_consumption
+observation = environment.get_state()
+obs_count = len(observation)
+action_count = 3
+
+model = DQN(obs_count, action_count).to(opt.device)
+
+loss_fn = nn.SmoothL1Loss()  # Huber loss
+optimizer = torch.optim.AdamW(model.parameters(), lr=opt.learning_rate)  # AdamW optimizer
 
 # LAKEvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 with open('room1.json', 'r') as f:
@@ -96,61 +111,15 @@ def experience_replay(model, batch_size, memory, obs_count, epoch_count):
     for epoch in range(epoch_count):
         # Forward pass
         y_pred = model(torch.tensor(X).float().to(opt.device))
-        loss_val = model.loss_fn(y_pred, torch.tensor(y).to(opt.device))
+        loss_val = loss_fn(y_pred, torch.tensor(y).to(opt.device))
         loss.append(loss_val.item())
 
         # Backward pass and optimization step
-        model.optimizer.zero_grad()
+        optimizer.zero_grad()
         loss_val.backward()
-        model.optimizer.step()
+        optimizer.step()
 
     return loss
-
-environment = Environment(
-    0.1,  # cloudiness
-    0.5)  # energy_consumption
-observation = environment.get_state()
-obs_count = len(observation)
-action_count = 3
-
-
-class DQN(nn.Module):
-    def __init__(self, obs_count, action_count):
-        super(DQN, self).__init__()
-
-        # layers
-        self.fc1 = nn.Linear(obs_count, 20)
-        self.fc2 = nn.Linear(20, 20)
-        self.fc3 = nn.Linear(20, 20)
-        self.fc4 = nn.Linear(20, action_count)
-        self.activation = nn.LeakyReLU()
-        self.dropout = nn.Dropout(p=0.2)
-
-        # training options
-        self.loss_fn = nn.SmoothL1Loss()  # Huber loss
-        self.optimizer = torch.optim.AdamW(self.parameters(), lr=opt.learning_rate)  # AdamW optimizer
-
-    def forward(self, x):
-
-        # input layer
-        x = self.fc1(x)
-        x = self.activation(x)
-
-        # 1st hidden layer
-        x = self.fc2(x)
-        x = self.activation(x)
-
-        # 2nd hidden layer
-        x = self.fc3(x)
-        x = self.activation(x)
-
-        # output layer
-        x = self.fc4(x)
-
-        return x
-
-
-model = DQN(obs_count, action_count).to(opt.device)
 
 rewards = []
 loss = []
@@ -225,8 +194,6 @@ for episode in range(opt.num_episodes):
         "\t - avg loss: %.4f" % np.mean(np.asarray(loss)), "\n"
         "\t - epsilon: %.4f" % epsilon,"\n")
 
-plotting.plot(environment)
-
 # LAKEvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 
 with open('data.json', 'w') as f:
@@ -234,4 +201,16 @@ with open('data.json', 'w') as f:
 
 # LAKE^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-# torch.save(model, 'model_name')
+current_dateTime = datetime.now()
+
+path = pathlib.Path("saved_models/"+
+                    str(current_dateTime.year)+"_"+
+                    str(current_dateTime.month)+"_"+
+                    str(current_dateTime.day)+"_"+
+                    str(current_dateTime.hour)+"_"+
+                    str(current_dateTime.minute)+"_"+
+                    str(current_dateTime.second))
+print(path)
+torch.save(model.state_dict(), path)
+
+plotting.plot(environment)

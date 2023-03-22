@@ -5,22 +5,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from pylab import rcParams
 
-
-# %%
-"""def get_custom_xcticks(historical_data):
-    ticks = []
-    tick_names = []
-    last_tick_name = 0
-    for step in range(len(historical_data)):
-        if (step % 60 == 0):
-            ticks.append(step)
-            tick_names.append(last_tick_name)
-            last_tick_name += 1
-            if (last_tick_name >= 24):
-                last_tick_name = 0
-    return ticks, tick_names"""
-
-
 # %%
 class Greenhouse():
     def __init__(self, energy_consumption):
@@ -189,67 +173,6 @@ class Environment:
 
         return data
 
-    def get_custom_xcticks(self, historical_data):
-        ticks = []
-        tick_names = []
-        last_tick_name = 0
-        for step in range(len(historical_data)):
-            if step % 60 == 0:
-                ticks.append(step)
-                tick_names.append(last_tick_name)
-                last_tick_name += 1
-                if last_tick_name >= 24:
-                    last_tick_name = 0
-        return ticks, tick_names
-
-    ######################################################################################################################################
-
-    """def calculate_reward(self, indoor_temp, indoor_temp_history, energy_consumption):
-
-        # reward weighing
-        r1_w = 1.0
-        r2_w = 1.0
-        r3_w = 1.0
-
-        #!!placeholder values!!
-        max_temp = 20
-        min_temp = 15
-        temp_midpoint = (max_temp + min_temp) / 2  # midpoint
-
-        # !!placeholder values!!
-        max_allowed_temp_change = 5  # degrees/minute
-        prev_indoor_temp = indoor_temp_history[len(indoor_temp_history) - 2]  # get second last temp value
-        temp_change = abs(indoor_temp - prev_indoor_temp)
-
-        # Calculate reward for indoor temperature control
-        if min_temp <= indoor_temp <= max_temp:
-            r1 = 1.0
-        else:
-            r1 = -abs(indoor_temp - temp_midpoint)
-
-        # Calculate reward for energy savings
-        if energy_consumption:
-            r2 = 0.0
-        else:
-            r2 = 1.0
-
-        if max_allowed_temp_change < (temp_change + 0.1) and max_allowed_temp_change < (temp_change - 0.1):
-            r3 = 1.0
-        else:
-            r3 = -abs(max_allowed_temp_change - temp_change)
-
-        # Calculate total reward
-
-        r1 *= r1_w
-        r2 *= r2_w
-        r3 *= r3_w
-
-        total_reward = r1 + r2 + r3
-
-        #total_reward = -math.log(abs(temp_midpoint - indoor_temp))
-
-        return total_reward"""
-
     ######################################################################################################################################
     def run(self, heating, cooling, steps, output_format):
         for step in range(steps):
@@ -292,15 +215,15 @@ class Environment:
 
 """rcParams['figure.figsize'] = 20, 5
 
-plt.plot(world.H_temp, label='Outside temperature', linewidth='10', color="blue")
+plt.plotting(world.H_temp, label='Outside temperature', linewidth='10', color="blue")
 
-plt.plot([light * max(world.H_greenhouse_temp) for light in world.H_sunlight],
+plt.plotting([light * max(world.H_greenhouse_temp) for light in world.H_sunlight],
          label='Sunlight', linewidth='2', color="orange")
 
-plt.plot([energy / max(world.H_greenhouse_temp) for energy in world.H_greenhouse_energy_consumption],
+plt.plotting([energy / max(world.H_greenhouse_temp) for energy in world.H_greenhouse_energy_consumption],
          label='Consumed energy', linewidth='5', color="red")
 
-plt.plot(world.H_greenhouse_temp, label='Greenhouse temperature', linewidth='5', color="green")
+plt.plotting(world.H_greenhouse_temp, label='Greenhouse temperature', linewidth='5', color="green")
 
 # plt.figure(figsize=(10, 5))
 custom_ticks, custom_tick_names = get_custom_xcticks(world.H_temp)

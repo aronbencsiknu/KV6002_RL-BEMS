@@ -1,33 +1,35 @@
 import json
 import numpy as np
-import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
 from collections import deque
 import random
-from pylab import rcParams
-from progress.bar import Bar
+from progress.bar import ShadyBar
+
+from environment import Environment  # import environment simulation
+from options import Options  # import options
+from reward import Reward  # import reward mechanism for agent
+from plot import Plot  # import environment plotting
+
+# from plotting import Plot
+opt = Options()
+
+# we can declare max/min temps here, but we can also change them later via a setter method in Reward
+reward = Reward()
+
+# we can change the desired plotting colours here
+plotting = Plot()
+
 
 # LAKEvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 with open('room1.json', 'r') as f:
     data = json.load(f)
 # LAKE^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-from environment import Environment  # import environment simulation
-from options import Options  # import options
-from reward import Reward  # import reward mechanism for agent
-
-# from plot import Plot
-opt = Options()
-
 # LAKEvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 """opt.num_episodes = 20
 opt.episode_len = 5000"""
 # LAKE^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-
-# we can declare max/min temps here, but we can also change them later via a setter method in Reward
-reward = Reward()
 
 # LAKEvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 """reward.min_temp = int(data['minTemp'])
@@ -104,52 +106,6 @@ def experience_replay(model, batch_size, memory, obs_count, epoch_count):
 
     return loss
 
-
-def list_window_averaging(win_len, list_to_avg):
-    return_list = []
-    current_window = 0
-    current_window_sum = 0
-
-    for i in list_to_avg:
-        current_window += 1
-        current_window_sum += i
-
-        if current_window >= win_len:
-            current_window = 0
-            return_list.append([current_window_sum / win_len] * win_len)
-            current_window_sum = 0
-
-    return np.asarray(return_list).flatten()
-
-
-def plot(world):
-    rcParams['figure.figsize'] = 20, 5
-
-    plt.plot(world.H_temp, label='Outside temperature', linewidth='10', color="blue")
-
-    plt.plot([light * max(world.H_greenhouse_temp) for light in world.H_sunlight],
-             label='Sunlight', linewidth='2', color="orange")
-
-    plt.plot(world.H_greenhouse_temp, label='Greenhouse temperature', linewidth='3', color="green")
-
-    # lake below
-
-    heating_plot = list_window_averaging(win_len=50, list_to_avg=world.H_greenhouse_heating)
-    ventilation_plot = list_window_averaging(win_len=50, list_to_avg=world.H_greenhouse_ventilation)
-
-    plt.plot([energy * max(world.H_greenhouse_temp) for energy in heating_plot],
-             label='Heating', linewidth='2', color="red")
-
-    plt.plot([cooler * max(world.H_greenhouse_temp) for cooler in ventilation_plot], label="Ventilation", linewidth='2',
-             color="black")
-    # plt.figure(figsize=(10, 5))
-    custom_ticks, custom_tick_names = world.get_custom_xcticks(world.H_temp)
-    plt.xticks(custom_ticks, custom_tick_names)
-    #custom_xticks = get_custom_xticks(len(world.H_greenhouse_temp))
-    plt.legend()
-    plt.show()
-
-
 environment = Environment(
     0.1,  # cloudiness
     0.5)  # energy_consumption
@@ -214,7 +170,7 @@ for episode in range(opt.num_episodes):
     epsilons.append(epsilon)
 
     bar_title = "Episode " + str(episode + 1) + " of " + str(opt.num_episodes)
-    bar = Bar(bar_title, max=opt.episode_len)
+    bar = ShadyBar(bar_title, max=opt.episode_len)
 
     for ep_index in range(opt.episode_len):
         with torch.no_grad():
@@ -266,11 +222,10 @@ for episode in range(opt.num_episodes):
     rewards.append(total_reward)
     avg_reward = total_reward / opt.episode_len
     print("\t - avg reward: %.4f" % avg_reward, "\n"
-                                                "\t - avg loss: %.4f" % np.mean(np.asarray(loss)), "\n"
-                                                                                                   "\t - epsilon: %.4f" % epsilon,
-          "\n")
+        "\t - avg loss: %.4f" % np.mean(np.asarray(loss)), "\n"
+        "\t - epsilon: %.4f" % epsilon,"\n")
 
-plot(environment)
+plotting.plot(environment)
 
 # LAKEvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 

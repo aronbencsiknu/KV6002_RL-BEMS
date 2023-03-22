@@ -15,12 +15,12 @@ class Plot:
 
         rcParams['figure.figsize'] = 20, 5
 
-        plt.plot(world.H_temp, label='Outside temperature', linewidth='2', color=self.temp_c, linestyle = ':')
+        plt.plot(world.H_temp, label='Outside temperature', linewidth='1', color=self.temp_c, linestyle = '-')
 
         plt.plot([light * max(world.H_greenhouse_temp) for light in world.H_sunlight],
-                 label='Sunlight', linewidth='2', color=self.sunlight_c)
+                 label='Sunlight', linewidth='1', color=self.sunlight_c, linestyle = '-')
 
-        plt.plot(world.H_greenhouse_temp, label='Greenhouse temperature', linewidth='2', color=self.greenhouse_temp_c, linestyle = ':')
+        plt.plot(world.H_greenhouse_temp, label='Greenhouse temperature', linewidth='1', color=self.greenhouse_temp_c, linestyle = '-')
 
         # lake below
 
@@ -28,9 +28,9 @@ class Plot:
         ventilation_plot = self.list_window_averaging(win_len=50, list_to_avg=world.H_greenhouse_ventilation)
 
         plt.plot([energy * max(world.H_greenhouse_temp) for energy in heating_plot],
-                 label='Heating', linewidth='2', color=self.heating_c)
+                 label='Heating (Averaged and scaled)', linewidth='2', color=self.heating_c)
 
-        plt.plot([cooler * max(world.H_greenhouse_temp) for cooler in ventilation_plot], label="Ventilation",
+        plt.plot([cooler * max(world.H_greenhouse_temp) for cooler in ventilation_plot], label="Ventilation (Averaged and scaled)",
                  linewidth='2',
                  color=self.ventilation_c)
 
@@ -61,10 +61,10 @@ class Plot:
         tick_names = []
         last_tick_name = 0
         for step in range(len(historical_data)):
-            if step % 60 == 0:
+            if step % 120 == 0:
                 ticks.append(step)
                 tick_names.append(last_tick_name)
-                last_tick_name += 1
+                last_tick_name += 2
                 if last_tick_name >= 24:
                     last_tick_name = 0
         return ticks, tick_names

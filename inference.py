@@ -22,7 +22,7 @@ action_count = 3
 
 model = DQN(obs_count, action_count).to(opt.device)
 
-path = pathlib.Path("saved_models/"+"2023_3_22_11_30_53")  # replace - with model name
+path = pathlib.Path("saved_models/"+"2023_3_22_12_5_37")  # replace - with model name
 
 model.load_state_dict(torch.load(path, map_location=opt.device))
 

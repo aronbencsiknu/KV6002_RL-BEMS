@@ -8,6 +8,7 @@ from collections import deque
 import random
 from progress.bar import ShadyBar
 from datetime import datetime
+import time
 
 from environment import Environment  # import environment simulation
 from options import Options  # import options
@@ -35,26 +36,6 @@ model = DQN(obs_count, action_count).to(opt.device)
 
 loss_fn = nn.SmoothL1Loss()  # Huber loss
 optimizer = torch.optim.AdamW(model.parameters(), lr=opt.learning_rate)  # AdamW optimizer
-
-# LAKEvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-with open('room1.json', 'r') as f:
-    data = json.load(f)
-# LAKE^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-# LAKEvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-"""opt.num_episodes = 20
-opt.episode_len = 5000"""
-# LAKE^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-# LAKEvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-"""reward.min_temp = int(data['minTemp'])
-reward.max_temp = int(data['maxTemp'])
-reward.max_allowed_temp_change = int(data['rateOfChange'])
-reward.crit_min_temp = int(data['critMinTemp'])
-reward.crit_max_temp = int(data['critMaxTemp'])
-reward.crit_time = int(data['maxTime'])
-"""  # LAKE^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
 
 def experience_replay(model, batch_size, memory, obs_count, epoch_count):
     """
@@ -121,6 +102,49 @@ def experience_replay(model, batch_size, memory, obs_count, epoch_count):
 
     return loss
 
+
+def run_iter(obs_t, total_reward):
+    with torch.no_grad():
+        rand_num = np.random.random()
+
+        # explore
+        if rand_num <= epsilon:
+            action_index = random.randint(0, action_count - 1)
+
+        # exploit
+        else:
+            action = model(torch.tensor(obs_t).float().to(opt.device)).to("cpu")
+            action_index = np.argmax(action)
+
+        # set actions
+        if action_index == 0:
+            heating = True
+            ventilation = False
+        elif action_index == 1:
+            heating = False
+            ventilation = True
+        else:
+            heating = False
+            ventilation = False
+
+        # advance simulation with actions
+        environment.run(heating=heating, cooling=ventilation, steps=1, output_format='none')
+
+        # get environment state
+        obs_t_next = environment.get_state()
+
+        # calculate reward (will be a call to another file)
+        reward_value = reward.calculate_reward(environment.greenhouse.temp, environment.H_temp,
+                                               heating)  # input current variables here
+        total_reward += reward_value
+
+        # append to experience memory
+        memory.append((obs_t, action_index, reward_value, obs_t_next))
+        obs_t = obs_t_next
+
+        return obs_t, total_reward
+
+
 rewards = []
 loss = []
 epsilons = []
@@ -128,89 +152,106 @@ beta = opt.beta  # This is the epsilon decay rate
 batch_size = opt.batch_size
 memory = deque([], maxlen=2500)
 
-for episode in range(opt.num_episodes):
-    environment = Environment(
-        0.1,  # cloudiness
-        0.5)  # energy_consumption
-    obs_t = environment.get_state()
-    total_reward = 0
+if opt.pre_train:
+    for episode in range(opt.num_episodes):
+        environment = Environment(
+            0.1,  # cloudiness
+            0.5)  # energy_consumption
+        obs_t = environment.get_state()
+        total_reward = 0
 
-    epsilon = 1 / (1 + opt.beta * (episode / action_count))
-    epsilons.append(epsilon)
+        epsilon = 1 / (1 + opt.beta * (episode / action_count))
+        epsilons.append(epsilon)
 
-    bar_title = "Episode " + str(episode + 1) + " of " + str(opt.num_episodes)
-    bar = ShadyBar(bar_title, max=opt.episode_len)
+        bar_title = "Episode " + str(episode + 1) + " of " + str(opt.num_episodes)
+        bar = ShadyBar(bar_title, max=opt.episode_len)
+        for ep_index in range(opt.episode_len):
 
-    for ep_index in range(opt.episode_len):
-        with torch.no_grad():
-            rand_num = np.random.random()
+            if ep_index % 100 == 0:
+                midpoint = random.randint(15, 25)
 
-            # explore
-            if rand_num <= epsilon:
-                action_index = random.randint(0, action_count - 1)
+                reward.update(max_temp=midpoint + random.randint(1, 4),
+                              min_temp=midpoint - random.randint(1, 4),
+                              crit_max_temp=midpoint + random.randint(4, 8),
+                              crit_min_temp=midpoint - random.randint(4, 8),
+                              max_crit_time=random.randint(30, 60),
+                              max_allowed_temp_change=random.randint(1, 5))
 
-            # exploit
-            else:
-                action = model(torch.tensor(obs_t).float().to(opt.device)).to("cpu")
-                action_index = np.argmax(action)
+            obs_t, total_reward = run_iter(obs_t, total_reward)
+            # train DQN and calculate loss
+            if len(memory) > batch_size:
+                loss = experience_replay(model, batch_size, memory, obs_count, opt.num_epochs)
 
-            # set actions
-            if action_index == 0:
-                heating = True
-                ventilation = False
-            elif action_index == 1:
-                heating = False
-                ventilation = True
-            else:
-                heating = False
-                ventilation = False
+            bar.next()  # update progress bar
 
-            # advance simulation with actions
-            environment.run(heating=heating, cooling=ventilation, steps=1, output_format='none')
+        bar.finish()
 
-            # get environment state
-            obs_t_next = environment.get_state()
+        rewards.append(total_reward)
+        avg_reward = total_reward / opt.episode_len
+        print("\t - avg reward: %.4f" % avg_reward, "\n"
+            "\t - avg loss: %.4f" % np.mean(np.asarray(loss)), "\n"
+            "\t - epsilon: %.4f" % epsilon,"\n")
 
-            # calculate reward (will be a call to another file)
-            reward_value = reward.calculate_reward(environment.greenhouse.temp, environment.H_temp,
-                                                   heating)  # input current variables here
-            total_reward += reward_value
+    current_dateTime = datetime.now()
+    path = pathlib.Path("saved_models/" +
+                        str(current_dateTime.year) + "_" +
+                        str(current_dateTime.month) + "_" +
+                        str(current_dateTime.day) + "_" +
+                        str(current_dateTime.hour) + "_" +
+                        str(current_dateTime.minute) + "_" +
+                        str(current_dateTime.second))
+    torch.save(model.state_dict(), path)
+    plotting.plot(environment)
 
-            # append to experience memory
-            memory.append((obs_t, action_index, reward_value, obs_t_next))
-            obs_t = obs_t_next
+else:
+    # LAKEvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+    with open('room1.json', 'r') as f:
+        data = json.load(f)
+    # LAKE^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-        # train DQN and calculate loss
-        if len(memory) > batch_size:
-            loss = experience_replay(model, batch_size, memory, obs_count, opt.num_epochs)
+    # LAKEvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+    """opt.num_episodes = 20
+    opt.episode_len = 5000"""
+    # LAKE^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-        bar.next()  # update progress bar
+    # LAKEvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+    """reward.min_temp = int(data['minTemp'])
+    reward.max_temp = int(data['maxTemp'])
+    reward.max_allowed_temp_change = int(data['rateOfChange'])
+    reward.crit_min_temp = int(data['critMinTemp'])
+    reward.crit_max_temp = int(data['critMaxTemp'])
+    reward.crit_time = int(data['maxTime'])
+    """  # LAKE^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    for i in range(opt.demo_len):
+        time.sleep(0.5)
+        environment = Environment(
+            0.1,  # cloudiness
+            0.5)  # energy_consumption
+        obs_t = environment.get_state()
+        total_reward = 0
 
-    bar.finish()
+        epsilon = 1 / (1 + opt.beta * (i / action_count))
+        epsilons.append(epsilon)
 
-    rewards.append(total_reward)
-    avg_reward = total_reward / opt.episode_len
-    print("\t - avg reward: %.4f" % avg_reward, "\n"
-        "\t - avg loss: %.4f" % np.mean(np.asarray(loss)), "\n"
-        "\t - epsilon: %.4f" % epsilon,"\n")
+        bar_title = "Episode " + str(i + 1) + " of " + str(opt.num_episodes)
+        bar = ShadyBar(bar_title, max=opt.episode_len)
+        for ep_index in range(opt.episode_len):
 
-# LAKEvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+            obs_t, total_reward = run_iter(obs_t, total_reward)
+            # train DQN and calculate loss
+            if len(memory) > batch_size:
+                loss = experience_replay(model, batch_size, memory, obs_count, opt.num_epochs)
 
-with open('data.json', 'w') as f:
-    json.dump(data, f)
+            bar.next()  # update progress bar
 
-# LAKE^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        bar.finish()
 
-current_dateTime = datetime.now()
+        rewards.append(total_reward)
+        avg_reward = total_reward / opt.episode_len
 
-path = pathlib.Path("saved_models/"+
-                    str(current_dateTime.year)+"_"+
-                    str(current_dateTime.month)+"_"+
-                    str(current_dateTime.day)+"_"+
-                    str(current_dateTime.hour)+"_"+
-                    str(current_dateTime.minute)+"_"+
-                    str(current_dateTime.second))
-print(path)
-torch.save(model.state_dict(), path)
+        # LAKEvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 
-plotting.plot(environment)
+        with open('data.json', 'w') as f:
+            json.dump(data, f)
+
+        # LAKE^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

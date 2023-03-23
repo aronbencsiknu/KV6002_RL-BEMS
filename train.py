@@ -193,58 +193,50 @@ if opt.pre_train:
             "\t - epsilon: %.4f" % epsilon,"\n")
 
     current_dateTime = datetime.now()
-    path = pathlib.Path("saved_models/" +
-                        str(current_dateTime.year) + "_" +
-                        str(current_dateTime.month) + "_" +
-                        str(current_dateTime.day) + "_" +
-                        str(current_dateTime.hour) + "_" +
-                        str(current_dateTime.minute) + "_" +
-                        str(current_dateTime.second))
+    path = pathlib.Path("trained_model")
     torch.save(model.state_dict(), path)
     plotting.plot(environment)
 
 else:
-    # LAKEvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-    with open('room1.json', 'r') as f:
-        data = json.load(f)
-    # LAKE^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    path = pathlib.Path("trained_model")
+    model.load_state_dict(torch.load(path))
 
-    # LAKEvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-    """opt.num_episodes = 20
-    opt.episode_len = 5000"""
-    # LAKE^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    environment = Environment(
+        0.1,  # cloudiness
+        0.5)  # energy_consumption
 
-    # LAKEvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-    """reward.min_temp = int(data['minTemp'])
-    reward.max_temp = int(data['maxTemp'])
-    reward.max_allowed_temp_change = int(data['rateOfChange'])
-    reward.crit_min_temp = int(data['critMinTemp'])
-    reward.crit_max_temp = int(data['critMaxTemp'])
-    reward.crit_time = int(data['maxTime'])
-    """  # LAKE^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
     for i in range(opt.demo_len):
-        time.sleep(0.5)
-        environment = Environment(
-            0.1,  # cloudiness
-            0.5)  # energy_consumption
+        time.sleep(1)
+
+        # LAKEvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+        with open('room1.json', 'r') as f:
+            data = json.load(f)
+        # LAKE^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+        # LAKEvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+        """opt.num_episodes = 20
+        opt.episode_len = 5000"""
+        # LAKE^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+        # LAKEvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+        reward.min_temp = int(data['minTemp'])
+        reward.max_temp = int(data['maxTemp'])
+        reward.max_allowed_temp_change = int(data['rateOfChange'])
+        reward.crit_min_temp = int(data['critMinTemp'])
+        reward.crit_max_temp = int(data['critMaxTemp'])
+        reward.crit_time = int(data['maxTime'])
+        # LAKE^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
         obs_t = environment.get_state()
         total_reward = 0
 
         epsilon = 1 / (1 + opt.beta * (i / action_count))
         epsilons.append(epsilon)
 
-        bar_title = "Episode " + str(i + 1) + " of " + str(opt.num_episodes)
-        bar = ShadyBar(bar_title, max=opt.episode_len)
-        for ep_index in range(opt.episode_len):
-
-            obs_t, total_reward = run_iter(obs_t, total_reward)
-            # train DQN and calculate loss
-            if len(memory) > batch_size:
-                loss = experience_replay(model, batch_size, memory, obs_count, opt.num_epochs)
-
-            bar.next()  # update progress bar
-
-        bar.finish()
+        obs_t, total_reward = run_iter(obs_t, total_reward)
+        # train DQN and calculate loss
+        if len(memory) > batch_size:
+            loss = experience_replay(model, batch_size, memory, obs_count, opt.num_epochs)
 
         rewards.append(total_reward)
         avg_reward = total_reward / opt.episode_len
@@ -252,6 +244,6 @@ else:
         # LAKEvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 
         with open('data.json', 'w') as f:
-            json.dump(data, f)
+            json.dump([{"Outside_temp": environment.temp, "greenhouse_temp": environment.greenhouse.temp}], f)
 
         # LAKE^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

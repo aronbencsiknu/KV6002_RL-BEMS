@@ -14,3 +14,12 @@ Usage:
 1. To train the agent on a simulated greenhouse environment, run train.py.
 2. After training saving the model, launch the GUI, which communicates with inference.py
 
+
+
+To run The GUI
+
+ You need to install nodeJS before opening the files
+open the App.js in Visual Basics Code(Make sure the directory is set to where your file is ),
+Type in the terminal node app.js
+Click on the link
+Gui should be running (Keep in mind when submitting things in desktop2.html, wait a few seconds for the python scripts to run)

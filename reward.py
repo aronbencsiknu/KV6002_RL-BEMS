@@ -29,12 +29,12 @@ class Reward:
 
         # Calculate reward for indoor temperature control
         if self.min_temp <= indoor_temp <= self.max_temp:
-            r1 = 1.0
+            r1 = 0.0
             if self.current_crit_time < 0:
                 self.current_crit_time -= self.plant_heat_gain
 
         elif self.crit_min_temp <= indoor_temp <= self.crit_max_temp and self.current_crit_time < self.max_crit_time:
-            r1 = 1.0
+            r1 = 0.0
             self.current_crit_time += self.plant_heat_gain
 
         else:
@@ -42,12 +42,12 @@ class Reward:
 
         # Calculate reward for energy savings
         if heating:
-            r2 = 0.0
+            r2 = -1.0
         else:
-            r2 = 1.0
+            r2 = 0.0
 
         if self.max_allowed_temp_change < temp_change:
-            r3 = 1.0
+            r3 = 0.0
         else:
             r3 = -abs(self.max_allowed_temp_change - temp_change)
 

@@ -28,7 +28,7 @@ environment = Environment(
     0.1,  # cloudiness
     0.5)  # energy_consumption
 
-if not opt.pre_train:
+if not opt.pre_train and not opt.local_demo:
     import requests
     response = requests.get('http://127.0.0.1:3000/desktop3.html',
                             headers={'Cache-Control': 'no-cache', 'Pragma': 'no-cache'})
@@ -108,7 +108,7 @@ def experience_replay(model, batch_size, memory, obs_count, epoch_count):
     return loss
 
 
-def run_iter(obs_t, total_reward):
+def run_iter(obs_t, total_reward, epsilon):
     with torch.no_grad():
         rand_num = np.random.random()
 
@@ -175,14 +175,14 @@ if opt.pre_train:
             if ep_index % 100 == 0:
                 midpoint = random.randint(20, 25)
 
-                reward.update(max_temp=midpoint + random.randint(1, 4),
+                """reward.update(max_temp=midpoint + random.randint(1, 4),
                               min_temp=midpoint - random.randint(1, 4),
                               crit_max_temp=midpoint + random.randint(4, 8),
                               crit_min_temp=midpoint - random.randint(4, 8),
                               max_crit_time=random.randint(30, 60),
-                              max_allowed_temp_change=random.randint(1, 5))
+                              max_allowed_temp_change=random.randint(1, 5))"""
 
-            obs_t, total_reward = run_iter(obs_t, total_reward)
+            obs_t, total_reward = run_iter(obs_t, total_reward, epsilon)
             # train DQN and calculate loss
             if len(memory) > batch_size:
                 loss = experience_replay(model, batch_size, memory, obs_count, opt.num_epochs)
@@ -212,36 +212,37 @@ else:
     environment = Environment(
         0.1,  # cloudiness
         0.5)  # energy_consumption
-
+    if opt.local_demo:
+        bar_title = "Progress"
+        bar = ShadyBar(bar_title, max=opt.episode_len)
     for i in range(opt.demo_len):
-        time.sleep(1)
 
-        # LAKEvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-        with open('room1.json', 'r') as f:
-            data = json.load(f)
-        # LAKE^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        if not opt.local_demo:
+            time.sleep(1)
+            # LAKEvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+            with open('room1.json', 'r') as f:
+                data = json.load(f)
+            # LAKE^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-        # LAKEvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-        """opt.num_episodes = 20
-        opt.episode_len = 5000"""
-        # LAKE^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-        """# LAKEvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-        reward.min_temp = int(data['minTemp'])
-        reward.max_temp = int(data['maxTemp'])
-        reward.max_allowed_temp_change = int(data['rateOfChange'])
-        reward.crit_min_temp = int(data['critMinTemp'])
-        reward.crit_max_temp = int(data['critMaxTemp'])
-        reward.crit_time = int(data['maxTime'])
-        # LAKE^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^"""
+            # LAKEvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+            reward.min_temp = int(data['minTemp'])
+            reward.max_temp = int(data['maxTemp'])
+            reward.max_allowed_temp_change = int(data['rateOfChange'])
+            reward.crit_min_temp = int(data['critMinTemp'])
+            reward.crit_max_temp = int(data['critMaxTemp'])
+            reward.crit_time = int(data['maxTime'])
+            # LAKE^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        else:
+            bar.next()  # update progress bar
 
         obs_t = environment.get_state()
         total_reward = 0
 
-        epsilon = 1 / (1 + opt.beta * (i / action_count))
+        #epsilon = 1 / (1 + opt.beta * (i / action_count))
+        epsilon = 0
         epsilons.append(epsilon)
 
-        obs_t, total_reward = run_iter(obs_t, total_reward)
+        obs_t, total_reward = run_iter(obs_t, total_reward, epsilon)
         # train DQN and calculate loss
         if len(memory) > batch_size:
             loss = experience_replay(model, batch_size, memory, obs_count, opt.num_epochs)
@@ -249,10 +250,13 @@ else:
         rewards.append(total_reward)
         avg_reward = total_reward / opt.episode_len
 
-        # LAKEvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+        if not opt.local_demo:
+            # LAKEvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 
-        with open('./public/data.json', 'w+') as f:
-            json.dump([{"minTemp": environment.temp, "maxTemp": environment.greenhouse.temp}], f)
+            with open('./public/data.json', 'w+') as f:
+                json.dump([{"minTemp": environment.temp, "maxTemp": environment.greenhouse.temp}], f)
 
-        # LAKE^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    plotting.plot(environment)
+            # LAKE^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    if opt.local_demo:
+        bar.finish()
+        plotting.plot(environment)

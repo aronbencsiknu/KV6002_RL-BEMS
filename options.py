@@ -13,3 +13,4 @@ class Options(object):
         self.num_epochs = 1
         self.demo_len = 5000
         self.pre_train = False
+        self.local_demo = True

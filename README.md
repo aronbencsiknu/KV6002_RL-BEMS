@@ -1,5 +1,7 @@
 # Greenhouse Energy Management with Deep Q Learning
 
+This project was made as part of the KV6002 Team Project and Professionalism module at Northumbria University, Newcastle.
+
 ## There are 3 ways to run the project:
 
 **1. Pre-train.** To pre-train a reinforcement learning model, run ```python main.py --pretrain``` in directory /python_code.

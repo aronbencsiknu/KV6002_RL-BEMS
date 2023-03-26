@@ -1,4 +1,3 @@
-import torch
 import torch.nn as nn
 
 
@@ -7,9 +6,9 @@ class DQN(nn.Module):
         super(DQN, self).__init__()
 
         # layers
-        self.fc1 = nn.Linear(obs_count, 20)
-        self.fc2 = nn.Linear(20, 20)
-        self.fc3 = nn.Linear(20, 20)
+        self.fc1 = nn.Linear(obs_count, 100)
+        self.fc2 = nn.Linear(100, 50)
+        self.fc3 = nn.Linear(50, 20)
         self.fc4 = nn.Linear(20, action_count)
         self.activation = nn.LeakyReLU()
         self.dropout = nn.Dropout(p=0.2)

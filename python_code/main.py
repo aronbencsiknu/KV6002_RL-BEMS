@@ -1,3 +1,4 @@
+# %% imports
 import json
 import pathlib
 import numpy as np
@@ -14,7 +15,18 @@ from environment import Environment  # import environment simulation
 from options import Options  # import options
 from reward import Reward  # import reward mechanism for agent
 from plot import Plot  # import environment plotting
-from model import DQN
+from model import DQN  # import DQN model
+
+# %% define variables
+# parse arguments
+parser = argparse.ArgumentParser()
+parser.add_argument("-l", "--localdemo", help="increase output verbosity",
+                    action="store_true")
+
+parser.add_argument("-p", "--pretrain", help="increase output verbosity",
+                    action="store_true")
+
+args = parser.parse_args()
 
 # from plotting import Plot
 opt = Options()
@@ -25,30 +37,24 @@ reward = Reward()
 # we can change the desired plotting colours here
 plotting = Plot()
 
+# initialize environment simulation
 environment = Environment(
     0.1,  # cloudiness
     0.5)  # energy_consumption
 
-parser = argparse.ArgumentParser()
-parser.add_argument("-l", "--localdemo", help="increase output verbosity",
-                    action="store_true")
-args = parser.parse_args()
-
-if not opt.pre_train and not args.localdemo:
-    import requests
-    response = requests.get('http://127.0.0.1:3000/index.html',
-                            headers={'Cache-Control': 'no-cache', 'Pragma': 'no-cache'})
-
 observation = environment.get_state()
 obs_count = len(observation)
 action_count = 3
-
 model = DQN(obs_count, action_count).to(opt.device)
-
 loss_fn = nn.SmoothL1Loss()  # Huber loss
 optimizer = torch.optim.AdamW(model.parameters(), lr=opt.learning_rate)  # AdamW optimizer
+rewards = []  # historical reward values
+loss = []  # historical loss values
+epsilons = []  # historical epsilon values
+beta = opt.beta  # This is the epsilon decay rate
+memory = deque([], maxlen=2500)
 
-
+# %% functions
 def experience_replay(model, batch_size, memory, obs_count, epoch_count):
     """
     Creates the IIDD supervised data from the experience memory, to train the DQN
@@ -156,14 +162,13 @@ def run_iter(obs_t, total_reward, epsilon):
         return obs_t, total_reward
 
 
-rewards = []
-loss = []
-epsilons = []
-beta = opt.beta  # This is the epsilon decay rate
-batch_size = opt.batch_size
-memory = deque([], maxlen=2500)
+# %% program run
+if not args.pretrain and not args.localdemo:
+    import requests
+    response = requests.get('http://127.0.0.1:3000/index.html',
+                            headers={'Cache-Control': 'no-cache', 'Pragma': 'no-cache'})
 
-if opt.pre_train:
+if args.pretrain:
     for episode in range(opt.num_episodes):
         environment = Environment(
             0.1,  # cloudiness
@@ -190,8 +195,8 @@ if opt.pre_train:
 
             obs_t, total_reward = run_iter(obs_t, total_reward, epsilon)
             # train DQN and calculate loss
-            if len(memory) > batch_size:
-                loss = experience_replay(model, batch_size, memory, obs_count, opt.num_epochs)
+            if len(memory) > opt.batch_size:
+                loss = experience_replay(model, opt.batch_size, memory, obs_count, opt.num_epochs)
 
             bar.next()  # update progress bar
 
@@ -205,7 +210,9 @@ if opt.pre_train:
               "\n")
 
     current_dateTime = datetime.now()
-    path = pathlib.Path("trained_model")
+    current_dir = pathlib.Path(__file__).resolve()
+    parent_dir = current_dir.parents[1]
+    path = pathlib.Path(parent_dir / "trained_models/trained_model")
     torch.save(model.state_dict(), path)
     plotting.plot(environment)
 
@@ -214,6 +221,7 @@ else:
     current_dir = pathlib.Path(__file__).resolve()
     parent_dir = current_dir.parents[1]
     path = pathlib.Path(parent_dir / "trained_models/trained_model")
+    path = "trained_model"
 
     model.load_state_dict(torch.load(path, map_location=torch.device('cpu')))
 
@@ -253,9 +261,10 @@ else:
         epsilons.append(epsilon)
 
         obs_t, total_reward = run_iter(obs_t, total_reward, epsilon)
+
         # train DQN and calculate loss
-        if len(memory) > batch_size:
-            loss = experience_replay(model, batch_size, memory, obs_count, opt.num_epochs)
+        if len(memory) > opt.batch_size:
+            loss = experience_replay(model, opt.batch_size, memory, obs_count, opt.num_epochs)
 
         rewards.append(total_reward)
         avg_reward = total_reward / opt.episode_len
@@ -271,7 +280,7 @@ else:
                             "Outside_temp": environment.temp,
                             "Time": 0,
                             "Ventilation": int(environment.greenhouse.ventilation),
-                            "Heating":int(environment.greenhouse.heating),
+                            "Heating": int(environment.greenhouse.heating),
                             "Average_consumption": avg_consumption}], f)
 
             # LAKE^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

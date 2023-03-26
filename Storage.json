@@ -1,0 +1,7 @@
+{
+  "location": "asd",
+  "forecast": {
+    "cod": "404",
+    "message": "city not found"
+  }
+}

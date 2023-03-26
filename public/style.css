@@ -1,0 +1,126 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500&family=Space+Mono&display=swap');
+
+*{
+  box-sizing: border-box;
+}
+html{
+  font-family: 'Space Grotesk', sans-serif;
+  box-sizing: border-box;
+  margin:0;
+  padding:0;
+  color: #162540;
+}
+body{
+  margin: 0;
+  padding: 0;
+}
+.controls{
+  overflow: hidden;
+  position:absolute;
+  left:50%;
+  top: 30px;
+  max-width: 520px;
+  -webkit-transform: translate(-50%, 0);
+  transform: translate(-50%, 0);
+  width: 100%;
+  overflow: visible;
+}
+.container {
+  overflow: hidden;
+  top:70px;
+  position:absolute;
+  left:50%;
+  max-width: 520px;
+  -webkit-transform: translate(-50%, 0);
+  transform: translate(-50%, 0);
+  width: 100%;
+  
+}
+.greenhouse_container{
+  display: grid;
+  grid-template-areas: "a a" "b c " "b c";
+  grid-gap: 15px;
+  padding: 5px 20px 15px 20px;
+  border: 1px solid #cfcfcf;
+  background-color: white ;
+  margin-bottom: 20px;
+  grid-template-columns: 1fr 240px;
+  border-radius: 8px;
+}
+.greenhouse_container h1{
+  margin: 0;
+  padding: 0;
+  font-size: 1.7em;
+  line-height: 1.7em;
+  width: 100%;
+  grid-area: a;
+  border-bottom: 1px solid #cfcfcf;
+}
+
+.room-container {
+  width: 100%;
+}
+
+.info_container{
+  width: 100%;
+  grid-area: b;
+  border-right: 1px solid #cfcfcf;
+}
+
+.input_container{
+  position: relative;
+  width: 100%;
+  grid-area: c;
+  padding-left: 40px;
+}
+.room-input {
+  margin-bottom: 10px;
+}
+
+.room-row{
+  flex-direction: column;
+  display: flex;
+}
+
+.room-input{
+  max-width: 55px;
+  width: 100%;
+  float: right;
+  border: 1px solid #cfcfcf;
+  border-radius: 2px;
+  font-family: inherit;
+  color: #50555b;
+  padding: 2px 2px 2px 4px;
+}
+.room-input:focus{
+  outline: none;
+  border: 1px solid #162540;
+}
+#num_greenhouses{
+  float: none;
+  margin-left: 5px;
+}
+.room-row span{
+  margin-bottom: 5px;
+  margin-top: 5px;
+}
+#submit{
+  float:right;
+}
+#submit {
+  display: block;
+  padding: 6px 15px;
+  background-color: #162540;
+  border: none;
+  color: white;
+  font-weight: bold;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  font-family : inherit;
+}
+
+#submit:hover {
+  background-color: #284376;
+} 

@@ -1,4 +1,0 @@
-matplotlib==3.5.2
-numpy==1.21.5
-progress==1.6
-torch==1.13.1

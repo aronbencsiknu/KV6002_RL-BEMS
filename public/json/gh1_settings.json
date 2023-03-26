@@ -1,5 +1,5 @@
 {
-  "minTemp": "2",
+  "minTemp": "3",
   "maxTemp": "2",
   "rateOfChange": "2",
   "critMinTemp": "2",

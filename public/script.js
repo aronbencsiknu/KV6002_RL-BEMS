@@ -53,13 +53,9 @@ function create_greenhouses(){
   
     createInputArea(i, greenhouseContainer);
     
-    var sex = true;
-    do {
-    sex = true;
     fetch(`../json/gh${i + 1}_settings.json`)
       .then(response => response.json())
       .then(data => {
-        console.log(i);
         
         document.getElementById(`room-${i + 1}-min`).value = data.minTemp;
         document.getElementById(`room-${i + 1}-max`).value = data.maxTemp;
@@ -67,21 +63,12 @@ function create_greenhouses(){
         document.getElementById(`room-${i + 1}-crit-max`).value = data.critMaxTemp;
         document.getElementById(`room-${i + 1}-max-time`).value = data.maxTime;
         document.getElementById(`room-${i + 1}-rate`).value = data.rateOfChange;
-        /*
-        document.getElementById(`room-1-min`).value = data.minTemp;
-        document.getElementById(`room-1-max`).value = data.maxTemp;
-        document.getElementById(`room-1-crit-min`).value = data.critMaxTemp;
-        document.getElementById(`room-1-crit-max`).value = data.critMinTemp;
-        document.getElementById(`room-1-max-time`).value = data.maxTime;
-        document.getElementById(`room-1-rate`).value = data.rateOfChange;*/
         
       })
       .catch(error => {
         console.error(error); 
-        sex = false;
         console.log("sexd");
-      });  
-    } while(!sex);
+      });
   }
 }
 function createInfoSpan(id) {
@@ -286,7 +273,7 @@ function submitData() {
     num_greenhouses = next_num_greenhouses;
 
     const jsonData = JSON.stringify(roomData);
-    fetch("./fuck", {
+    fetch("./write_to_json", {
       
       method: "POST",
       headers: {

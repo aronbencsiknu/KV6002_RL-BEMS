@@ -15,3 +15,4 @@ class Options(object):
         self.pre_train = False
         self.local_demo = False
         self.demo_sleep = 1 # time.sleep in demo (in seconds)
+        

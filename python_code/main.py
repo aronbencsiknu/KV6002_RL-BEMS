@@ -54,6 +54,7 @@ epsilons = []  # historical epsilon values
 beta = opt.beta  # This is the epsilon decay rate
 memory = deque([], maxlen=2500)
 
+
 # %% functions
 def experience_replay(model, batch_size, memory, obs_count, epoch_count):
     """
@@ -77,8 +78,9 @@ def experience_replay(model, batch_size, memory, obs_count, epoch_count):
             obs_t[i] = batch_vector[i, 0]
             obs_t_next[i] = batch_vector[i, 3]
 
+        #print(obs_t)
         # predict actions for time t and time t+1
-        prediction_at_t = model(torch.tensor(obs_t).float().to(opt.device)).to("cpu")
+        prediction_at_t = model(torch.tensor(obs_t).float().to(opt.device).float()).to("cpu")
         prediction_at_t_next = model(torch.tensor(obs_t_next).float().to(opt.device)).to("cpu")
 
         X = []  # data list
@@ -221,9 +223,8 @@ else:
     current_dir = pathlib.Path(__file__).resolve()
     parent_dir = current_dir.parents[1]
     path = pathlib.Path(parent_dir / "trained_models/trained_model")
-    path = "trained_model"
 
-    model.load_state_dict(torch.load(path, map_location=torch.device('cpu')))
+    model.load_state_dict(torch.load(path, map_location=torch.device(opt.device)))
 
     environment = Environment(
         0.1,  # cloudiness

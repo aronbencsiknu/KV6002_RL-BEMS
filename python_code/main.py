@@ -8,6 +8,7 @@ import random
 from progress.bar import ShadyBar
 from datetime import datetime
 import time
+import argparse
 
 from environment import Environment  # import environment simulation
 from options import Options  # import options
@@ -28,7 +29,12 @@ environment = Environment(
     0.1,  # cloudiness
     0.5)  # energy_consumption
 
-if not opt.pre_train and not opt.local_demo:
+parser = argparse.ArgumentParser()
+parser.add_argument("-l", "--localdemo", help="increase output verbosity",
+                    action="store_true")
+args = parser.parse_args()
+
+if not opt.pre_train and not args.localdemo:
     import requests
     response = requests.get('http://127.0.0.1:3000/index.html',
                             headers={'Cache-Control': 'no-cache', 'Pragma': 'no-cache'})
@@ -214,11 +220,11 @@ else:
     environment = Environment(
         0.1,  # cloudiness
         0.5)  # energy_consumption
-    if opt.local_demo:
+    if args.localdemo:
         bar_title = "Progress"
         bar = ShadyBar(bar_title, max=opt.demo_len)
     for i in range(opt.demo_len):
-        if not opt.local_demo:
+        if not args.localdemo:
             time.sleep(opt.demo_sleep)
             try:
                 # LAKEvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
@@ -243,7 +249,6 @@ else:
         obs_t = environment.get_state()
         total_reward = 0
 
-        #epsilon = 1 / (1 + opt.beta * (i / action_count))
         epsilon = 0
         epsilons.append(epsilon)
 
@@ -255,13 +260,12 @@ else:
         rewards.append(total_reward)
         avg_reward = total_reward / opt.episode_len
 
-        if not opt.local_demo:
+        if not args.localdemo:
             # LAKEvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
             avg_consumption = -5
             if environment.step > 60:
-                last_60_energy = []
                 last_60_energy = environment.H_greenhouse_heating[len(environment.H_greenhouse_heating) - 61: len(environment.H_greenhouse_heating) -1]
-                avg_consumption =  np.mean(last_60_energy)
+                avg_consumption = np.mean(last_60_energy)
             with open(pathlib.Path(parent_dir / "public/json/gh1_obs.json"), 'w+') as f:
                 json.dump([{"Greenhouse_temp": environment.greenhouse.temp, 
                             "Outside_temp": environment.temp,
@@ -271,6 +275,6 @@ else:
                             "Average_consumption": avg_consumption}], f)
 
             # LAKE^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    if opt.local_demo:
+    if args.localdemo:
         bar.finish()
         plotting.plot(environment)

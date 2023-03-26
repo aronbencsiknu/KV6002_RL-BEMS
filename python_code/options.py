@@ -13,6 +13,5 @@ class Options(object):
         self.num_epochs = 1
         self.demo_len = 50000
         self.pre_train = False
-        self.local_demo = False
         self.demo_sleep = 1 # time.sleep in demo (in seconds)
         

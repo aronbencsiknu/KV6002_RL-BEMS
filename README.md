@@ -2,7 +2,7 @@
 
 ## There are 3 ways to run the project:
 
-**1. Pre-train.** To pre-train a reinforcement learning model, run '''python main.py --pretrain''' in directory /python_code.
+**1. Pre-train.** To pre-train a reinforcement learning model, run ```python main.py --pretrain``` in directory /python_code.
 This trains a model and saves it in the directory trained_model
   
 **2. Local demo.** To locally test a model, run "python main.py --localdemo" in directory /python_code.

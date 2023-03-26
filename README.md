@@ -7,7 +7,8 @@ This project was made as part of the KV6002 Team Project and Professionalism mod
 1. The project requires NodeJS and Python3 to run.
 2. Install the Python libraries detailed in requirements.txt using the command ```pip install -r requirements.txt```
 
-## There are 3 ways to run the project:
+## How to run
+### There are 3 ways to run the project:
 
 **1. Pre-train.** To pre-train a reinforcement learning model, run ```python main.py --pretrain``` in directory /python_code.
 This trains a model and saves it in the directory trained_model

@@ -4,5 +4,5 @@
   "rateOfChange": "2",
   "critMinTemp": "2",
   "critMaxTemp": "2",
-  "maxTime": "2"
+  "maxTime": "12"
 }

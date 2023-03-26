@@ -6,14 +6,13 @@ const container = document.querySelector(".container");
   var num_greenhouses_field = document.getElementById("num_greenhouses")
   var next_num_greenhouses = 1;
   num_greenhouses_field.addEventListener('input', function (evt) {
-    console.log("hjabdhabed")
-    console.log(this.value)
     if(this.value>0 || this.value !== null){
       next_num_greenhouses = this.value;
     }
     else{
       next_num_greenhouses = 1;
     }
+    console.log("next greenhouse num: "+next_num_greenhouses);
     
 });
 // Create rooms
@@ -211,30 +210,10 @@ function fetchData() {
     })
     .catch(error => console.error(error));  
 }
-setInterval(fetchData, 100);
+setInterval(fetchData, 500);
 
 document.addEventListener("DOMContentLoaded", function() { 
   create_greenhouses();
-  /*
-  for (let i = 1; i <= num_greenhouses; i++) {
-    fetch(`./room${i}.json`)
-      .then((response) => response.json())
-      .then((data) => {
-        // display the data to the user
-        console.log(`Greenhouse ${i}:`);
-        console.log(data);
-
-        document.getElementById(`room-${i}-min`).value = data.minTemp;
-        document.getElementById(`room-${i}-max`).value = data.maxTemp;
-        document.getElementById(`room-${i}-crit-min`).value = data.critMinTemp;
-        document.getElementById(`room-${i}-crit-max`).value = data.critMaxTemp;
-        document.getElementById(`room-${i}-max-time`).value = data.maxTime;
-        document.getElementById(`room-${i}-rate`).value = data.rateOfChange;
-      })
-      .catch((error) => {
-        console.error(`Failed to load room ${i}`);
-      });
-  }*/
 });
 
 
@@ -246,9 +225,6 @@ function submitData() {
     const roomData = {
       rooms: [],
     };
-    console.log("num greenhouses")
-    console.log(num_greenhouses)
-    console.log(next_num_greenhouses)
     for (let i = 1; i <= num_greenhouses; i++) {
       const minTempInput = document.getElementById(`room-${i}-min`);
       const maxTempInput = document.getElementById(`room-${i}-max`);
@@ -269,9 +245,7 @@ function submitData() {
       roomData.rooms.push(room);
       
     }
-
-    num_greenhouses = next_num_greenhouses;
-
+    console.log(roomData);
     const jsonData = JSON.stringify(roomData);
     fetch("./write_to_json", {
       
@@ -284,6 +258,8 @@ function submitData() {
       .then((response) => {
         if (response.ok) {
           console.log("Data stored successfully");
+          num_greenhouses = next_num_greenhouses;
+          create_greenhouses();
           
         } else {
           console.error("Failed to store data");
@@ -292,7 +268,7 @@ function submitData() {
       .catch((error) => {
         console.log("Error storing data");
       });
-      create_greenhouses();
+      
   }
   else{
     console.log("fill all");

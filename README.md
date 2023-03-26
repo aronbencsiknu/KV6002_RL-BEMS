@@ -4,7 +4,7 @@ This project was made as part of the KV6002 Team Project and Professionalism mod
 
 ## Requirements
 
-1. The project requires NodeJS and Python3 to be installed on the device.
+1. The project requires NodeJS and Python3 to run.
 2. Install the Python libraries detailed in requirements.txt using the command ```pip install -r requirements.txt```
 
 ## There are 3 ways to run the project:

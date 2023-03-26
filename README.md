@@ -1,6 +1,6 @@
 # Greenhouse Energy Management with Deep Q Learning
 
-There are 3 ways to run the project:
+## There are 3 ways to run the project:
 
 1. To pre-train a reinforcement learning model, run "python main.py --pretrain" in directory /python_code.
 This trains a model and saves it in the directory trained_model

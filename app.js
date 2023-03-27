@@ -57,7 +57,36 @@ app.post('/write_to_json', (req, res) => {
   
       }
     });
+
+    pool.query('SELECT * FROM user WHERE roomNumber = ?', [index + 1], (error, results, fields) => {
+      if (error) {
+        console.error('Error executing query: ', error);
+        return;
+      }
+      if (results.length === 0) {
+        // Room number does not exist, so insert a new row
+        pool.query('INSERT INTO user (roomNumber, minTemp, maxTemp, rateOfChange, critMinTemp, critMaxTemp, maxTime) VALUES (?, ?, ?, ?, ?, ?, ?)', [index + 1, room.minTemp, room.maxTemp, room.rateOfChange, room.critMinTemp, room.critMaxTemp, room.maxTime], (error, results, fields) => {
+          if (error) {
+            console.error('Error executing query: ', error);
+            return;
+          }
+          console.log('Data inserted successfully!');
+        });
+      } else {
+        // Room number already exists, so update the existing row
+        pool.query('UPDATE user SET minTemp = ?, maxTemp = ?, rateOfChange = ?, critMinTemp = ?, critMaxTemp = ?, maxTime = ? WHERE roomNumber = ?', [room.minTemp, room.maxTemp, room.rateOfChange, room.critMinTemp, room.critMaxTemp, room.maxTime, index + 1], (error, results, fields) => {
+          if (error) {
+            console.error('Error executing query: ', error);
+            return;
+          }
+          console.log('Data updated successfully!');
+        });
+      }
+ 
+    });
+ 
   });
+
   current_num = parseInt(roomData.greenhouse_nums[0].current_num);
   prev_num = parseInt(roomData.greenhouse_nums[0].prev_num);
   //pyScripts[1] = spawn('python', ['python_code/main.py',"2"]);
@@ -66,6 +95,7 @@ app.post('/write_to_json', (req, res) => {
     //create processes
     
     for (let i = prev_num; i <= current_num; i++) {
+      console.log(i);
       const fileName = `./public/json/gh${i}_settings.json`;
       if (!fs.existsSync(fileName)) {
         // If it doesn't exist, create it with some initial data
@@ -79,8 +109,43 @@ app.post('/write_to_json', (req, res) => {
         };
         fs.writeFileSync(fileName, JSON.stringify(initialData));
       }
+      let initialData = {
+        minTemp: 20,
+        maxTemp: 25,
+        rateOfChange: 1,
+        critMinTemp: 17,
+        critMaxTemp: 30,
+        maxTime: 60
+      };
+      pool.query('SELECT * FROM user WHERE roomNumber = ?', [i + 1], (error, results, fields) => {
+        if (error) {
+          console.error('Error executing query: ', error);
+          return;
+        }
+        if (results.length === 0) {
+          // Room number does not exist, so insert a new row
+          pool.query('INSERT INTO user (roomNumber, minTemp, maxTemp, rateOfChange, critMinTemp, critMaxTemp, maxTime) VALUES (?, ?, ?, ?, ?, ?, ?)', [i + 1, initialData.minTemp, initialData.maxTemp, initialData.rateOfChange, initialData.critMinTemp, initialData.critMaxTemp, initialData.maxTime], (error, results, fields) => {
+            if (error) {
+              console.error('Error executing query: ', error);
+              return;
+            }
+            console.log('Data inserted successfully!');
+          });
+        } else {
+          // Room number already exists, so update the existing row
+          pool.query('UPDATE user SET minTemp = ?, maxTemp = ?, rateOfChange = ?, critMinTemp = ?, critMaxTemp = ?, maxTime = ? WHERE roomNumber = ?', [initialData.minTemp, initialData.maxTemp, initialData.rateOfChange, initialData.critMinTemp, initialData.critMaxTemp, initialData.maxTime, i + 1], (error, results, fields) => {
+            if (error) {
+              console.error('Error executing query: ', error);
+              return;
+            }
+            console.log('Data updated successfully!');
+          });
+        }
+   
+      });
       var temp = i+1;
       pyScripts.push(spawn('python', ['python_code/main.py', '-g', i+1]));
+    
     } 
     
   }
@@ -94,3 +159,33 @@ app.post('/write_to_json', (req, res) => {
   res.status(200).send("done with file");
 
 });
+
+const mysql = require('mysql');
+const pool = mysql.createPool({
+  connectionLimit: 10,
+  host: 'localhost',
+  user: 'root',
+  password: '1234', 
+  database: 'greenhouse',
+});
+
+pool.getConnection((err, connection) => {
+  if (err) {
+    console.error('Error connecting to database: ', err);
+    return;
+  }
+  console.log('Connected to database!');
+
+ 
+    pool.query('SELECT * FROM user', (error, results, fields,res) => {
+      if (error) {
+        console.error('Error executing query: ', error);
+        res.send('Error executing query!');
+
+      }
+    console.log(fields);
+
+      connection.release(); // release the connection back to the pool
+    });
+  });
+﻿

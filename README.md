@@ -1,4 +1,4 @@
-# Greenhouse Energy Management with Deep Q Learning
+# Greenhouse Temperature Management with Deep Q Learning
 
 This project was made as part of the KV6002 Team Project and Professionalism module at Northumbria University, Newcastle.
 

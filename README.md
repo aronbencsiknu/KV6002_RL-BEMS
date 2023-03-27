@@ -4,7 +4,7 @@ This project was made as part of the KV6002 Team Project and Professionalism mod
 
 ## Requirements
 
-1. The project requires NodeJS and Python3 to run.
+1. Install python3 from (https://www.python.org/downloads/)
 2. Install the Python libraries detailed in requirements.txt using the command ```pip install -r requirements.txt```
 
 ## How to run

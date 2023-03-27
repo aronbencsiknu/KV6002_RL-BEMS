@@ -16,24 +16,17 @@ app.use(express.static(__dirname + '/public'));
 
 app.listen(3000, () => console.log('Visit http://localhost:3000/'));
 
-//const PythonShell = require('python-shell').PythonShell;
 const { spawn } = require('child_process');
 
-/*
-const runScript = (args) => {
-  const python = spawn('python', ['python_code/main.py',args]);
-}
-runScript(["2"]);*/
-
-// Watch the 'trained' file for changes
-//PythonShell.run('python_code/main.py');
 const pyScripts = [];
+
+const useDatabase = false;
 
 pyScripts[0] = spawn('python', ['python_code/main.py', '-g', 1]);
 
 app.post('/write_to_json', (req, res) => { 
   const roomData = req.body;
-  //PythonShell.run('python_code/main.py');
+
   // Write the data to individual JSON files for each room
   var dataStr; 
   
@@ -57,33 +50,36 @@ app.post('/write_to_json', (req, res) => {
   
       }
     });
-
-    pool.query('SELECT * FROM user WHERE roomNumber = ?', [index + 1], (error, results, fields) => {
-      if (error) {
-        console.error('Error executing query: ', error);
-        return;
-      }
-      if (results.length === 0) {
-        // Room number does not exist, so insert a new row
-        pool.query('INSERT INTO user (roomNumber, minTemp, maxTemp, rateOfChange, critMinTemp, critMaxTemp, maxTime) VALUES (?, ?, ?, ?, ?, ?, ?)', [index + 1, room.minTemp, room.maxTemp, room.rateOfChange, room.critMinTemp, room.critMaxTemp, room.maxTime], (error, results, fields) => {
-          if (error) {
-            console.error('Error executing query: ', error);
-            return;
-          }
-          console.log('Data inserted successfully!');
-        });
-      } else {
-        // Room number already exists, so update the existing row
-        pool.query('UPDATE user SET minTemp = ?, maxTemp = ?, rateOfChange = ?, critMinTemp = ?, critMaxTemp = ?, maxTime = ? WHERE roomNumber = ?', [room.minTemp, room.maxTemp, room.rateOfChange, room.critMinTemp, room.critMaxTemp, room.maxTime, index + 1], (error, results, fields) => {
-          if (error) {
-            console.error('Error executing query: ', error);
-            return;
-          }
-          console.log('Data updated successfully!');
-        });
-      }
- 
-    });
+    // database code below
+    if (useDatabase){
+      pool.query('SELECT * FROM user WHERE roomNumber = ?', [index + 1], (error, results, fields) => {
+        if (error) {
+          console.error('Error executing query: ', error);
+          return;
+        }
+        if (results.length === 0) {
+          // Room number does not exist, so insert a new row
+          pool.query('INSERT INTO user (roomNumber, minTemp, maxTemp, rateOfChange, critMinTemp, critMaxTemp, maxTime) VALUES (?, ?, ?, ?, ?, ?, ?)', [index + 1, room.minTemp, room.maxTemp, room.rateOfChange, room.critMinTemp, room.critMaxTemp, room.maxTime], (error, results, fields) => {
+            if (error) {
+              console.error('Error executing query: ', error);
+              return;
+            }
+            console.log('Data inserted successfully!');
+          });
+        } else {
+          // Room number already exists, so update the existing row
+          pool.query('UPDATE user SET minTemp = ?, maxTemp = ?, rateOfChange = ?, critMinTemp = ?, critMaxTemp = ?, maxTime = ? WHERE roomNumber = ?', [room.minTemp, room.maxTemp, room.rateOfChange, room.critMinTemp, room.critMaxTemp, room.maxTime, index + 1], (error, results, fields) => {
+            if (error) {
+              console.error('Error executing query: ', error);
+              return;
+            }
+            console.log('Data updated successfully!');
+          });
+        }
+   
+      });
+    }
+    
  
   });
 
@@ -94,8 +90,7 @@ app.post('/write_to_json', (req, res) => {
   if (current_num > prev_num){
     //create processes
     
-    for (let i = prev_num; i <= current_num; i++) {
-      console.log(i);
+    for (let i = prev_num; i < current_num; i++) {
       const fileName = `./public/json/gh${i}_settings.json`;
       if (!fs.existsSync(fileName)) {
         // If it doesn't exist, create it with some initial data
@@ -117,32 +112,37 @@ app.post('/write_to_json', (req, res) => {
         critMaxTemp: 30,
         maxTime: 60
       };
-      pool.query('SELECT * FROM user WHERE roomNumber = ?', [i + 1], (error, results, fields) => {
-        if (error) {
-          console.error('Error executing query: ', error);
-          return;
-        }
-        if (results.length === 0) {
-          // Room number does not exist, so insert a new row
-          pool.query('INSERT INTO user (roomNumber, minTemp, maxTemp, rateOfChange, critMinTemp, critMaxTemp, maxTime) VALUES (?, ?, ?, ?, ?, ?, ?)', [i + 1, initialData.minTemp, initialData.maxTemp, initialData.rateOfChange, initialData.critMinTemp, initialData.critMaxTemp, initialData.maxTime], (error, results, fields) => {
-            if (error) {
-              console.error('Error executing query: ', error);
-              return;
-            }
-            console.log('Data inserted successfully!');
-          });
-        } else {
-          // Room number already exists, so update the existing row
-          pool.query('UPDATE user SET minTemp = ?, maxTemp = ?, rateOfChange = ?, critMinTemp = ?, critMaxTemp = ?, maxTime = ? WHERE roomNumber = ?', [initialData.minTemp, initialData.maxTemp, initialData.rateOfChange, initialData.critMinTemp, initialData.critMaxTemp, initialData.maxTime, i + 1], (error, results, fields) => {
-            if (error) {
-              console.error('Error executing query: ', error);
-              return;
-            }
-            console.log('Data updated successfully!');
-          });
-        }
-   
-      });
+
+      // database code below
+      if(useDatabase){
+        pool.query('SELECT * FROM user WHERE roomNumber = ?', [i + 1], (error, results, fields) => {
+          if (error) {
+            console.error('Error executing query: ', error);
+            return;
+          }
+          if (results.length === 0) {
+            // Room number does not exist, so insert a new row
+            pool.query('INSERT INTO user (roomNumber, minTemp, maxTemp, rateOfChange, critMinTemp, critMaxTemp, maxTime) VALUES (?, ?, ?, ?, ?, ?, ?)', [i + 1, initialData.minTemp, initialData.maxTemp, initialData.rateOfChange, initialData.critMinTemp, initialData.critMaxTemp, initialData.maxTime], (error, results, fields) => {
+              if (error) {
+                console.error('Error executing query: ', error);
+                return;
+              }
+              console.log('Data inserted successfully!');
+            });
+          } else {
+            // Room number already exists, so update the existing row
+            pool.query('UPDATE user SET minTemp = ?, maxTemp = ?, rateOfChange = ?, critMinTemp = ?, critMaxTemp = ?, maxTime = ? WHERE roomNumber = ?', [initialData.minTemp, initialData.maxTemp, initialData.rateOfChange, initialData.critMinTemp, initialData.critMaxTemp, initialData.maxTime, i + 1], (error, results, fields) => {
+              if (error) {
+                console.error('Error executing query: ', error);
+                return;
+              }
+              console.log('Data updated successfully!');
+            });
+          }
+     
+        });
+      }
+      
       var temp = i+1;
       pyScripts.push(spawn('python', ['python_code/main.py', '-g', i+1]));
     
@@ -151,16 +151,19 @@ app.post('/write_to_json', (req, res) => {
   }
   else if(current_num < prev_num){
     //kill processes
-    for (let i = prev_num; i < current_num; i--) {
+    for (let i = prev_num-1; i >= current_num; i--) {
       pyScripts[i].kill();
     } 
   }
-  
   res.status(200).send("done with file");
+
 
 });
 
-const mysql = require('mysql');
+
+// database code below
+if(useDatabase){
+  const mysql = require('mysql');
 const pool = mysql.createPool({
   connectionLimit: 10,
   host: 'localhost',
@@ -189,3 +192,4 @@ pool.getConnection((err, connection) => {
     });
   });
 ﻿
+}

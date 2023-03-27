@@ -10,6 +10,7 @@ from progress.bar import ShadyBar
 from datetime import datetime
 import time
 import argparse
+import os
 
 from environment import Environment  # import environment simulation
 from options import Options  # import options
@@ -26,7 +27,11 @@ parser.add_argument("-l", "--localdemo", help="increase output verbosity",
 parser.add_argument("-p", "--pretrain", help="increase output verbosity",
                     action="store_true")
 
+parser.add_argument('gindex')
+
 args = parser.parse_args()
+
+#print(args.gindex)
 
 # from plotting import Plot
 opt = Options()
@@ -236,8 +241,10 @@ else:
         if not args.localdemo:
             time.sleep(opt.demo_sleep)
             try:
+                #path = pathlib.Path(os.path.join(parent_dir, "public", "json", "gh" + str(args.gindex) + "_settings.json"))
+                path = pathlib.Path(os.path.join(parent_dir, "public", "json", "gh1_settings.json"))
                 # LAKEvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-                with open(pathlib.Path(parent_dir / "public/json/gh1_settings.json"), 'r') as f:
+                with open(path, 'r') as f:
                     data = json.load(f)
                 # LAKE^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -276,7 +283,9 @@ else:
             if environment.step > 60:
                 last_60_energy = environment.H_greenhouse_heating[len(environment.H_greenhouse_heating) - 61: len(environment.H_greenhouse_heating) -1]
                 avg_consumption = np.mean(last_60_energy)
-            with open(pathlib.Path(parent_dir / "public/json/gh1_obs.json"), 'w+') as f:
+            path = pathlib.Path(os.path.join(parent_dir, "public", "json", "gh" + str(args.gindex) + "_obs.json"))
+            #path = pathlib.Path(os.path.join(parent_dir, "public", "json", "gh1_obs.json"))
+            with open(path, 'w+') as f:
                 json.dump([{"Greenhouse_temp": environment.greenhouse.temp, 
                             "Outside_temp": environment.temp,
                             "Time": 0,

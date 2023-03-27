@@ -25,12 +25,12 @@ function create_greenhouses(){
     greenhouseContainer.classList.add("greenhouse_container");
     container.appendChild(greenhouseContainer);
     
-    const minTempInput = createInfoSpan(`min-temp-${i}`, "GreenHouseTemp");
-    const maxTempInput = createInfoSpan(`max-temp-${i}`, "OutsideTemp");
-    const TimeInput = createInfoSpan(`Time-${i}`, "Time");
-    const Heating_Status= createInfoSpan(`HeatingStatus-${i}`, "HeatingStatus");
-    const Cooling_status= createInfoSpan(`CoolingStatus-${i}`, "CoolingStatus");
-    const Average_consumption= createInfoSpan(`AverageConsumption-${i}`, "AverageConsumption");
+    const minTempInput = createInfoSpan(`min-temp-${i+1}`, "GreenHouseTemp");
+    const maxTempInput = createInfoSpan(`max-temp-${i+1}`, "OutsideTemp");
+    const TimeInput = createInfoSpan(`Time-${i+1}`, "Time");
+    const Heating_Status= createInfoSpan(`HeatingStatus-${i+1}`, "HeatingStatus");
+    const Cooling_status= createInfoSpan(`CoolingStatus-${i+1}`, "CoolingStatus");
+    const Average_consumption= createInfoSpan(`AverageConsumption-${i+1}`, "AverageConsumption");
     const roomRow = document.createElement("div");
     roomRow.classList.add("room-row");
   
@@ -52,7 +52,7 @@ function create_greenhouses(){
   
     createInputArea(i, greenhouseContainer);
     
-    fetch(`../json/gh${i + 1}_settings.json`)
+    fetch(`./json/gh${i + 1}_settings.json`)
       .then(response => response.json())
       .then(data => {
         
@@ -66,7 +66,7 @@ function create_greenhouses(){
       })
       .catch(error => {
         console.error(error); 
-        console.log("sexd");
+        console.log("sexd: "+i);
       });
   }
 }
@@ -152,64 +152,66 @@ function createInputAndLabel(labelText,id,) {
 }
 // Fetch data from data.json
 function fetchData() {
-  fetch("./json/gh1_obs.json")
-    .then(response => response.json())
-    .then(data => {
-      const roomData = data[0]; // get the first object in the array
-      const minTempInput = document.getElementById("min-temp-0");
-      const maxTempInput = document.getElementById("max-temp-0");
-      const TimetInput = document.getElementById("Time-0");
-      const CoolingStatusInput = document.getElementById("CoolingStatus-0");
-      const Heating_StatusInput = document.getElementById("HeatingStatus-0");
-      const Average_consumptionInput = document.getElementById("AverageConsumption-0");
-      function boldHTML(text) {
-        var element = document.createElement("b");
-        element.innerHTML = text;
-        return element;
-      }
-      // displaying environment observations
-      while( minTempInput.firstChild ) {
-        minTempInput.removeChild( minTempInput.firstChild );
-      }
-      minTempInput.appendChild(boldHTML("I Temp: "))
-      minTempInput.appendChild( document.createTextNode(roomData.Greenhouse_temp.toFixed(1)) );
+  for (let i = 0; i < num_greenhouses; i++) {
+    fetch(`./json/gh${i + 1}_obs.json`)
+      .then(response => response.json())
+      .then(data => {
+        const roomData = data[0]; // get the first object in the array
+        const minTempInput = document.getElementById(`min-temp-${i+1}`);
+        const maxTempInput = document.getElementById(`max-temp-${i+1}`);
+        const TimetInput = document.getElementById(`Time-${i+1}`);
+        const CoolingStatusInput = document.getElementById(`CoolingStatus-${i+1}`);
+        const Heating_StatusInput = document.getElementById(`HeatingStatus-${i+1}`);
+        const Average_consumptionInput = document.getElementById(`AverageConsumption-${i+1}`);
+        function boldHTML(text) {
+          var element = document.createElement("b");
+          element.innerHTML = text;
+          return element;
+        }
+        // displaying environment observations
+        while( minTempInput.firstChild ) {
+          minTempInput.removeChild( minTempInput.firstChild );
+        }
+        minTempInput.appendChild(boldHTML("I Temp: "))
+        minTempInput.appendChild( document.createTextNode(roomData.Greenhouse_temp.toFixed(1)) );
 
-      while( maxTempInput.firstChild ) {
-        maxTempInput.removeChild( maxTempInput.firstChild );
-      }
-      maxTempInput.appendChild(boldHTML("O Temp: "))
-      maxTempInput.appendChild( document.createTextNode(roomData.Outside_temp.toFixed(1)) );
-      
+        while( maxTempInput.firstChild ) {
+          maxTempInput.removeChild( maxTempInput.firstChild );
+        }
+        maxTempInput.appendChild(boldHTML("O Temp: "))
+        maxTempInput.appendChild( document.createTextNode(roomData.Outside_temp.toFixed(1)) );
+        
 
-      while( TimetInput.firstChild ) {
-        TimetInput.removeChild( TimetInput.firstChild );
-      }
-      TimetInput.appendChild(boldHTML("Time: "))
-      TimetInput.appendChild( document.createTextNode(roomData.Time) );
-      
+        while( TimetInput.firstChild ) {
+          TimetInput.removeChild( TimetInput.firstChild );
+        }
+        TimetInput.appendChild(boldHTML("Time: "))
+        TimetInput.appendChild( document.createTextNode(roomData.Time) );
+        
 
-      while( CoolingStatusInput.firstChild ) {
-        CoolingStatusInput.removeChild( CoolingStatusInput.firstChild );
-      }
-      CoolingStatusInput.appendChild(boldHTML("Vent: "))
-      CoolingStatusInput.appendChild( document.createTextNode(roomData.Ventilation) );
+        while( CoolingStatusInput.firstChild ) {
+          CoolingStatusInput.removeChild( CoolingStatusInput.firstChild );
+        }
+        CoolingStatusInput.appendChild(boldHTML("Vent: "))
+        CoolingStatusInput.appendChild( document.createTextNode(roomData.Ventilation) );
 
-      while( Heating_StatusInput.firstChild ) {
-        Heating_StatusInput.removeChild( Heating_StatusInput.firstChild );
-      }
-      Heating_StatusInput.appendChild(boldHTML("Heat: "))
-      Heating_StatusInput.appendChild( document.createTextNode(roomData.Heating) );
+        while( Heating_StatusInput.firstChild ) {
+          Heating_StatusInput.removeChild( Heating_StatusInput.firstChild );
+        }
+        Heating_StatusInput.appendChild(boldHTML("Heat: "))
+        Heating_StatusInput.appendChild( document.createTextNode(roomData.Heating) );
 
-      while( Average_consumptionInput.firstChild ) {
-        Average_consumptionInput.removeChild( Average_consumptionInput.firstChild );
-      }
-      Average_consumptionInput.appendChild(boldHTML("Avg Energy: "))
-      Average_consumptionInput.appendChild( document.createTextNode(roomData.Average_consumption.toFixed()) );
+        while( Average_consumptionInput.firstChild ) {
+          Average_consumptionInput.removeChild( Average_consumptionInput.firstChild );
+        }
+        Average_consumptionInput.appendChild(boldHTML("Avg Energy: "))
+        Average_consumptionInput.appendChild( document.createTextNode(roomData.Average_consumption.toFixed()) );
 
 
-    })
-    .catch(error => console.error(error));  
-}
+      })
+      .catch(error => console.error(error));  
+    }
+  }
 setInterval(fetchData, 500);
 
 document.addEventListener("DOMContentLoaded", function() { 
@@ -223,9 +225,16 @@ function submitData() {
   if (allFilled) {
 
     const roomData = {
+      greenhouse_nums: [],
       rooms: [],
     };
+    const numData = {
+      prev_num: num_greenhouses,
+      current_num: next_num_greenhouses,
+    };
+    roomData.greenhouse_nums.push(numData);
     for (let i = 1; i <= num_greenhouses; i++) {
+      
       const minTempInput = document.getElementById(`room-${i}-min`);
       const maxTempInput = document.getElementById(`room-${i}-max`);
       const critMinTempInput = document.getElementById(`room-${i}-crit-min`);
@@ -271,7 +280,7 @@ function submitData() {
       
   }
   else{
-    console.log("fill all");
+    alert("Please fill all values.");
   }
 }
 //const submitButton = document.createElement("button");

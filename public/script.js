@@ -185,27 +185,40 @@ function fetchData() {
         while( TimetInput.firstChild ) {
           TimetInput.removeChild( TimetInput.firstChild );
         }
-        TimetInput.appendChild(boldHTML("Time: "))
+        TimetInput.appendChild(boldHTML("Time (d:h:m): "))
         TimetInput.appendChild( document.createTextNode(roomData.Time) );
         
 
         while( CoolingStatusInput.firstChild ) {
           CoolingStatusInput.removeChild( CoolingStatusInput.firstChild );
         }
+        if (roomData.Ventilation == 0){
+          var temp = "Off";
+        }
+        else{
+          var temp = "On"
+        }
         CoolingStatusInput.appendChild(boldHTML("Vent: "))
-        CoolingStatusInput.appendChild( document.createTextNode(roomData.Ventilation) );
+        CoolingStatusInput.appendChild( document.createTextNode(temp) );
 
         while( Heating_StatusInput.firstChild ) {
           Heating_StatusInput.removeChild( Heating_StatusInput.firstChild );
         }
+        if (roomData.Heating == 0){
+          var temp = "Off";
+        }
+        else{
+          var temp = "On"
+        }
         Heating_StatusInput.appendChild(boldHTML("Heat: "))
-        Heating_StatusInput.appendChild( document.createTextNode(roomData.Heating) );
+        Heating_StatusInput.appendChild( document.createTextNode(temp) );
 
         while( Average_consumptionInput.firstChild ) {
           Average_consumptionInput.removeChild( Average_consumptionInput.firstChild );
         }
-        Average_consumptionInput.appendChild(boldHTML("Avg Energy: "))
-        Average_consumptionInput.appendChild( document.createTextNode(roomData.Average_consumption.toFixed()) );
+        var temp = roomData.Average_consumption*2.7;
+        Average_consumptionInput.appendChild(boldHTML("Avg Energy (kW): "))
+        Average_consumptionInput.appendChild( document.createTextNode(temp.toFixed(2)) );
 
 
       })

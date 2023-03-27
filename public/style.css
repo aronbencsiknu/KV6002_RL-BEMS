@@ -1,5 +1,6 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500&family=Space+Mono&display=swap');
+/*@import url('https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@500&display=swap');*/
 
 *{
   box-sizing: border-box;
@@ -20,7 +21,7 @@ body{
   position:absolute;
   left:50%;
   top: 30px;
-  max-width: 520px;
+  max-width: 550px;
   -webkit-transform: translate(-50%, 0);
   transform: translate(-50%, 0);
   width: 100%;
@@ -31,7 +32,7 @@ body{
   top:70px;
   position:absolute;
   left:50%;
-  max-width: 520px;
+  max-width: 550px;
   -webkit-transform: translate(-50%, 0);
   transform: translate(-50%, 0);
   width: 100%;
@@ -45,7 +46,7 @@ body{
   border: 1px solid #cfcfcf;
   background-color: white ;
   margin-bottom: 20px;
-  grid-template-columns: 1fr 240px;
+  grid-template-columns: 1fr 260px;
   border-radius: 8px;
 }
 .greenhouse_container h1{
@@ -72,10 +73,10 @@ body{
   position: relative;
   width: 100%;
   grid-area: c;
-  padding-left: 40px;
+  padding-left: 30px;
 }
 .room-input {
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .room-row{
@@ -91,7 +92,7 @@ body{
   border-radius: 2px;
   font-family: inherit;
   color: #50555b;
-  padding: 2px 2px 2px 4px;
+  padding: 3px 3px 3px 4px;
 }
 .room-input:focus{
   outline: none;

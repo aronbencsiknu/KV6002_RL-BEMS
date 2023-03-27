@@ -29,12 +29,10 @@ runScript(["2"]);*/
 //PythonShell.run('python_code/main.py');
 const pyScripts = [];
 
-pyScripts[0] = spawn('python', ['python_code/main.py',"1"]);
+pyScripts[0] = spawn('python', ['python_code/main.py', '-g', 1]);
 
 app.post('/write_to_json', (req, res) => { 
-  console.log('Received POST request');
   const roomData = req.body;
-  console.log(`Received room data: ${JSON.stringify(roomData)}`);
   //PythonShell.run('python_code/main.py');
   // Write the data to individual JSON files for each room
   var dataStr; 
@@ -69,20 +67,20 @@ app.post('/write_to_json', (req, res) => {
     
     for (let i = prev_num; i <= current_num; i++) {
       const fileName = `./public/json/gh${i}_settings.json`;
-      console.log("HELLO");
       if (!fs.existsSync(fileName)) {
         // If it doesn't exist, create it with some initial data
         let initialData = {
-          minTemp: 1,
-          maxTemp: 1,
+          minTemp: 20,
+          maxTemp: 25,
           rateOfChange: 1,
-          critMinTemp: 1,
-          critMaxTemp: 1,
-          maxTime: 1
+          critMinTemp: 17,
+          critMaxTemp: 30,
+          maxTime: 60
         };
         fs.writeFileSync(fileName, JSON.stringify(initialData));
       }
-      pyScripts.push(spawn('python', ['python_code/main.py', String(i+1)]));
+      var temp = i+1;
+      pyScripts.push(spawn('python', ['python_code/main.py', '-g', i+1]));
     } 
     
   }

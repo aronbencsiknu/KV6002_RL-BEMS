@@ -1,8 +1,8 @@
 {
-  "minTemp": "3",
-  "maxTemp": "7",
+  "minTemp": "18",
+  "maxTemp": "20",
   "rateOfChange": "2",
-  "critMinTemp": "2",
-  "critMaxTemp": "2",
-  "maxTime": "12"
+  "critMinTemp": "15",
+  "critMaxTemp": "22",
+  "maxTime": "60"
 }

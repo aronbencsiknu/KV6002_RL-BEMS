@@ -23,8 +23,14 @@ CREATE TABLE `user` (
 --
 
 CREATE TABLE  `historical` (
-`numofrooms` varchar(10) NOT NULL,
-`location` varchar(200),
-`code` varchar(10),
-`message` text
+`roomNumber` varchar(10) ,
+`GREENHOUSE_TEMP` varchar(200),
+`OUTSIDE_TEMP` varchar(10),
+
+`HEAT` varchar(10),
+
+`VENT` varchar(10),
+`AVG_CONSUMPTION` varchar(10),
+`Elapsed_time` varchar(10)
+
 ) DEFAULT CHARACTER SET utf8 COLLATE utf8_bin;

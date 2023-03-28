@@ -21,10 +21,12 @@ class DQN(nn.Module):
 
         # 1st hidden layer
         x = self.fc2(x)
+        #x = self.dropout(x)
         x = self.activation(x)
 
         # 2nd hidden layer
         x = self.fc3(x)
+        #x = self.dropout(x)
         x = self.activation(x)
 
         # output layer

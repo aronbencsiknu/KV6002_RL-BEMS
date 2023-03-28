@@ -19,6 +19,7 @@ from plot import Plot  # import environment plotting
 from model import DQN  # import DQN model
 
 # %% define variables
+
 # parse arguments
 parser = argparse.ArgumentParser()
 parser.add_argument("-l", "--localdemo", help="increase output verbosity",
@@ -28,7 +29,6 @@ parser.add_argument("-p", "--pretrain", help="increase output verbosity",
                     action="store_true")
 
 parser.add_argument("-g",'--gindex', type=int)
-
 args = parser.parse_args()
 
 # from plotting import Plot
@@ -45,20 +45,25 @@ environment = Environment(
     0.1,  # cloudiness
     0.5)  # energy_consumption
 
-observation = environment.get_state()
-obs_count = len(observation)
-action_count = 3
+
+observation = environment.get_state()  # get initial observation of the environment
+obs_count = len(observation)  # get the number of environment observations
+
+# number of possible actions (heat on, vent closed; vent open, heat off; both off)
+action_count = 3 
 model = DQN(obs_count, action_count).to(opt.device)
-loss_fn = nn.SmoothL1Loss()  # Huber loss
+loss_fn = opt.loss_fn
 optimizer = torch.optim.AdamW(model.parameters(), lr=opt.learning_rate)  # AdamW optimizer
+beta = opt.beta  # epsilon decay rate
+
+# lists
 rewards = []  # historical reward values
 loss = []  # historical loss values
 epsilons = []  # historical epsilon values
-beta = opt.beta  # This is the epsilon decay rate
-memory = deque([], maxlen=2500)
+memory = deque([], maxlen=2500)  # experience memory
 
 
-# %% functions
+# %% function definitions
 def experience_replay(model, batch_size, memory, obs_count, epoch_count):
     """
     Creates the IIDD supervised data from the experience memory, to train the DQN
@@ -125,80 +130,94 @@ def experience_replay(model, batch_size, memory, obs_count, epoch_count):
     return loss
 
 
-def run_iter(obs_t, total_reward, epsilon):
-    with torch.no_grad():
-        rand_num = np.random.random()
+def run_iter(obs_t, epsilon):
+    """
 
-        # explore
-        if rand_num <= epsilon:
-            action_index = random.randint(0, action_count - 1)
+    :param obs_t: observation at time t
+    :param epsilon: current epsilon value
+    :return: returns the observation at time t and the total reward
+    """
 
-        # exploit
-        else:
+    # explore
+    if np.random.random() <= epsilon:
+        action_index = random.randint(0, action_count - 1)
+
+    # exploit
+    else:
+        with torch.no_grad():
             action = model(torch.tensor(obs_t).float().to(opt.device)).to("cpu")
-            action_index = np.argmax(action)
+        action_index = np.argmax(action)
 
-        # set actions
-        if action_index == 0:
-            heating = True
-            ventilation = False
-        elif action_index == 1:
-            heating = False
-            ventilation = True
-        else:
-            heating = False
-            ventilation = False
+    # set actions
+    if action_index == 0:
+        heating = True
+        ventilation = False
+    elif action_index == 1:
+        heating = False
+        ventilation = True
+    else:
+        heating = False
+        ventilation = False
 
-        # advance simulation with actions
-        environment.run(heating=heating, cooling=ventilation, steps=1, output_format='none')
+    # advance simulation with actions
+    environment.run(heating=heating, cooling=ventilation, steps=1, output_format='none')
 
-        # get environment state
-        obs_t_next = environment.get_state()
+    # get environment state
+    obs_t_next = environment.get_state()
 
-        # calculate reward (will be a call to another file)
-        reward_value = reward.calculate_reward(environment.greenhouse.temp, environment.H_temp,
-                                               heating)  # input current variables here
-        total_reward += reward_value
+    # calculate reward (will be a call to another file)
+    reward_value = reward.calculate_reward(environment.greenhouse.temp, environment.H_temp,
+                                           heating)  # input current variables here
 
-        # append to experience memory
-        memory.append((obs_t, action_index, reward_value, obs_t_next))
-        obs_t = obs_t_next
+    # append to experience memory
+    memory.append((obs_t, action_index, reward_value, obs_t_next))
+    obs_t = obs_t_next
 
-        return obs_t, total_reward
+    return obs_t, reward_value
 
 
 # %% program run
+
+# uhm, this does something with the GUI, I'm not sure, i didn't write this
 if not args.pretrain and not args.localdemo:
     import requests
     response = requests.get('http://127.0.0.1:3000/index.html',
                             headers={'Cache-Control': 'no-cache', 'Pragma': 'no-cache'})
 
+# run pre-training
 if args.pretrain:
     for episode in range(opt.num_episodes):
         environment = Environment(
             0.1,  # cloudiness
             0.5)  # energy_consumption
         obs_t = environment.get_state()
-        total_reward = 0
 
         epsilon = 1 / (1 + opt.beta * (episode / action_count))
         epsilons.append(epsilon)
 
         bar_title = "Episode " + str(episode + 1) + " of " + str(opt.num_episodes)
         bar = ShadyBar(bar_title, max=opt.episode_len)
+
+        total_reward = 0
         for ep_index in range(opt.episode_len):
 
-            if ep_index % 100 == 0:
-                midpoint = random.randint(20, 25)
+            if ep_index % 500 == 0:
+                midpoint = random.randint(22, 23)
 
-                """reward.update(max_temp=midpoint + random.randint(1, 4),
-                              min_temp=midpoint - random.randint(1, 4),
-                              crit_max_temp=midpoint + random.randint(4, 8),
-                              crit_min_temp=midpoint - random.randint(4, 8),
+                # training DQN to deal with changing reward values
+                reward.update(max_temp=midpoint + random.randint(1, 2),
+                              min_temp=midpoint - random.randint(1, 2),
+                              crit_max_temp=midpoint + random.randint(3, 4),
+                              crit_min_temp=midpoint - random.randint(3, 4),
                               max_crit_time=random.randint(30, 60),
-                              max_allowed_temp_change=random.randint(1, 5))"""
+                              max_allowed_temp_change=random.randint(1, 5))
 
-            obs_t, total_reward = run_iter(obs_t, total_reward, epsilon)
+            obs_t, reward_value = run_iter(obs_t, epsilon)
+            total_reward += reward_value
+
+            # early stopping
+            
+
             # train DQN and calculate loss
             if len(memory) > opt.batch_size:
                 loss = experience_replay(model, opt.batch_size, memory, obs_count, opt.num_epochs)
@@ -206,8 +225,6 @@ if args.pretrain:
             bar.next()  # update progress bar
 
         bar.finish()
-
-        rewards.append(total_reward)
         avg_reward = total_reward / opt.episode_len
         print("\t - avg reward: %.4f" % avg_reward, "\n"
                                                     "\t - avg loss: %.4f" % np.mean(np.asarray(loss)), "\n"
@@ -217,30 +234,38 @@ if args.pretrain:
     current_dateTime = datetime.now()
     current_dir = pathlib.Path(__file__).resolve()
     parent_dir = current_dir.parents[1]
-    path = pathlib.Path(parent_dir / "trained_models/trained_model")
+    path = pathlib.Path(parent_dir / opt.path_to_model_from_root / opt.model_name_load)
     torch.save(model.state_dict(), path)
     plotting.plot(environment)
 
+# run local or GUI demo
 else:
-    reward = Reward()
+
+    # load saved model
     current_dir = pathlib.Path(__file__).resolve()
     parent_dir = current_dir.parents[1]
-    path = pathlib.Path(parent_dir / "trained_models/trained_model")
-
+    path = pathlib.Path(parent_dir / opt.path_to_model_from_root / opt.model_name_load)
     model.load_state_dict(torch.load(path, map_location=torch.device(opt.device)))
-
+    
+    """reward = Reward()
     environment = Environment(
         0.1,  # cloudiness
-        0.5)  # energy_consumption
+        0.5)  # energy_consumption"""
+    
+    # add progress bar for local demo
     if args.localdemo:
         bar_title = "Progress"
         bar = ShadyBar(bar_title, max=opt.demo_len)
+
+    total_reward = 0
+
     for i in range(opt.demo_len):
+
+        # receive data from GUI
         if not args.localdemo:
             time.sleep(opt.demo_sleep)
             try:
                 path = pathlib.Path(os.path.join(parent_dir, "public", "json", "gh" + str(args.gindex) + "_settings.json"))
-                #path = pathlib.Path(os.path.join(parent_dir, "public", "json", "gh1_settings.json"))
                 # LAKEvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
                 with open(path, 'r') as f:
                     data = json.load(f)
@@ -261,20 +286,19 @@ else:
             bar.next()  # update progress bar
 
         obs_t = environment.get_state()
-        total_reward = 0
 
         epsilon = 0
         epsilons.append(epsilon)
 
-        obs_t, total_reward = run_iter(obs_t, total_reward, epsilon)
+        obs_t, reward_value = run_iter(obs_t, epsilon)
+
+        total_reward += reward_value
 
         # train DQN and calculate loss
         if len(memory) > opt.batch_size:
             loss = experience_replay(model, opt.batch_size, memory, obs_count, opt.num_epochs)
 
-        rewards.append(total_reward)
-        avg_reward = total_reward / opt.episode_len
-
+        # send data to GUI
         if not args.localdemo:
             # LAKEvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
             avg_consumption = -5
@@ -283,19 +307,24 @@ else:
                 avg_consumption = np.mean(last_60_energy)
 
             path = pathlib.Path(os.path.join(parent_dir, "public", "json", "gh" + str(args.gindex) + "_obs.json"))
-            #path = pathlib.Path(os.path.join(parent_dir, "public", "json", "gh1_obs.json"))
+
+            # format elapsed time
             day = "{:02d}".format(environment.day)
             hour = "{:02d}".format(environment.hour)
             minute = "{:02d}".format(environment.minute)
             with open(path, 'w+') as f:
-                json.dump([{"Greenhouse_temp": environment.greenhouse.temp, 
+                json.dump({"Greenhouse_temp": environment.greenhouse.temp, 
                             "Outside_temp": environment.temp,
                             "Time": str(day) +" : "+str(hour) +" : "+ str(minute),
                             "Ventilation": int(environment.greenhouse.ventilation),
                             "Heating": int(environment.greenhouse.heating),
-                            "Average_consumption": avg_consumption}], f)
+                            "Average_consumption": avg_consumption}, f)
 
             # LAKE^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+    # finish progress bar and plot environment for local demo
     if args.localdemo:
+        avg_reward = total_reward / opt.demo_len
+        print("\n\n avg reward: %.4f" % avg_reward)
         bar.finish()
         plotting.plot(environment)

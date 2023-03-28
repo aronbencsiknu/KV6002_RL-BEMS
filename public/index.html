@@ -4,14 +4,19 @@
     <title>G.E.M.S.</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta charset="utf-8" />
-    <meta property="twitter:card" content="summary_large_image" />
     <link href="./style.css" rel="stylesheet" />
     <script type= "module"src="script.js"defer></script>
   </head>
   <body class="my_body" onload="">
         <div class="controls">
-          <label for="num_greenhouses">Number of greenhouses:</label>
-          <input type="number" class="room-input" id="num_greenhouses" name="num_greenhouses">
+          <div class="control_input_field">
+            <label for="num_greenhouses">Number of greenhouses:</label>
+            <input type="number" class="room-input" id="num_greenhouses" name="num_greenhouses">
+            <br>
+            <label for="location">Location:</label>
+            <input type="text" class="room-input" id="location_input" name="location">
+          </div>
+
           <button id="submit" type="button">Update</button> 
         </div>
           <div id="container" class="container">

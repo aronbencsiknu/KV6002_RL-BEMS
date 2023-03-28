@@ -152,32 +152,20 @@ class Environment:
     # -----------------------------------------------------------------------------------
     def get_state(self):
         """
-        collects relevant state info
+        collects relevant state information
         :return: state list of env at time t
         """
+
+        # normalizing values for more stable learning process
         # normalizing values as: value' = (value - min) / (max - min)
         norm_hour = (self.hour - 0) / (23 - 0)
         norm_temp = (self.temp - 0) / (40 - 0)
-        #norm_sunlight
         norm_greenhouse_temp = (self.greenhouse.temp - 0) / (40 - 0)
         norm_forecast_temp = (self.local_temps[self.hour + 1] - 0) / (40 - 0)
-        #norm_forecast_sunlight
 
-        data = []
-
-        # environment data
-        data.append(norm_hour)
-        data.append(norm_temp)
-        data.append(self.sunlight)
-
-        # greenhouse data
-        data.append(norm_greenhouse_temp)
-        data.append(int(self.greenhouse.heating))
-        data.append(int(self.greenhouse.ventilation))
-
-        # weather forecast
-        data.append(norm_forecast_temp)
-        data.append(self.sunlight_intensities[self.hour + 1])
+        # append data to observation array
+        data = [norm_hour, norm_temp, self.sunlight, norm_greenhouse_temp, int(self.greenhouse.heating),
+                int(self.greenhouse.ventilation), norm_forecast_temp, self.sunlight_intensities[self.hour + 1]]
 
         return data
 

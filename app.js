@@ -20,7 +20,9 @@ const { spawn } = require('child_process');
 
 const pyScripts = [];
 
-const useDatabase = false;
+const useDatabase = true;
+
+const apiKey = "8a444a761bdf366d120c7f07191093b5";
 
 pyScripts[0] = spawn('python', ['python_code/main.py', '-g', 1]);
 
@@ -82,6 +84,8 @@ app.post('/write_to_json', (req, res) => {
     
  
   });
+
+
 
   current_num = parseInt(roomData.greenhouse_nums[0].current_num);
   prev_num = parseInt(roomData.greenhouse_nums[0].prev_num);
@@ -155,41 +159,102 @@ app.post('/write_to_json', (req, res) => {
       pyScripts[i].kill();
     } 
   }
+
+  // fetch from weather API
+  const url = `https://api.openweathermap.org/data/2.5/weather?q=${roomData.location[0].location}&appid=${apiKey}&units=metric`;
+  fetch(url)
+    .then(response => response.json())
+    .then(data => {
+      console.log(data); // Log the weather information to the console
+      const forecastData = data;
+      console.log(forecastData);
+    })
+    .catch(error => {
+      console.error('There was a problem getting weather data:', error);
+      res.status(500).send('Error getting weather data!');
+  });
+  
   res.status(200).send("done with file");
 
 
 });
 
+app.post('/write_obs_to_db', (req, res) => { 
+  console.log("called");
+  const env_data = req.body;
+  // Write the data to individual JSON files for each room
+  var dataStr; 
+  
+  env_data.env_obs.forEach((obs, index) => {
+    console.log(obs.greenhouse_temp);
+    
+    //dataStr = JSON.stringify(dataObj, null, 2);
+    // database code below
+    if (useDatabase){
+      pool.query('SELECT * FROM historical WHERE roomNumber = ?', [index + 1], (error, results, fields) => {
+        if (error) {
+          console.error('Error executing query: ', error);
+          return;
+        }
+        if (results.length === 0) {
+          // Room number does not exist, so insert a new row
+          pool.query('INSERT INTO historical (roomNumber,GREENHOUSE_TEMP,OUTSIDE_TEMP,AVG_CONSUMPTION,VENT,HEAT,Elapsed_time) VALUES (?, ?, ?, ?, ?, ?, ?)', [index + 1, obs.greenhouse_temp, obs.outside_temp, obs.avg_energy, obs.vent, obs.heating, obs.time], (error, results, fields) => {
+            if (error) {
+              console.error('Error executing query: ', error);
+              return;
+            }
+            console.log('Data inserted successfully!');
+          });
+        } else {
+          // Room number already exists, so update the existing row
+          pool.query('UPDATE historical SET GREENHOUSE_TEMP = ?, OUTSIDE_TEMP = ?, AVG_CONSUMPTION = ?, VENT = ?, HEAT= ?, Elapsed_time = ? WHERE roomNumber = ?', [obs.greenhouse_temp, obs.outside_temp, obs.avg_energy, obs.vent, obs.heating, obs.time,index + 1], (error, results, fields) => {
+            if (error) {
+              console.error('Error executing query: ', error);
+              return;
+            }
+            console.log('Data updated successfully!');
+          });
+        }
+   
+      });
+    }
+    
+ 
+  });
 
-// database code below
-if(useDatabase){
+});
+  // database code below
+
   const mysql = require('mysql');
-const pool = mysql.createPool({
+  const pool = mysql.createPool({
   connectionLimit: 10,
   host: 'localhost',
   user: 'root',
   password: '1234', 
   database: 'greenhouse',
 });
-
-pool.getConnection((err, connection) => {
-  if (err) {
-    console.error('Error connecting to database: ', err);
-    return;
-  }
-  console.log('Connected to database!');
-
- 
-    pool.query('SELECT * FROM user', (error, results, fields,res) => {
-      if (error) {
-        console.error('Error executing query: ', error);
-        res.send('Error executing query!');
-
-      }
-    console.log(fields);
-
-      connection.release(); // release the connection back to the pool
+if(useDatabase){
+  pool.getConnection((err, connection) => {
+    if (err) {
+      console.error('Error connecting to database: ', err);
+      return;
+    }
+    console.log('Connected to database!');
+  
+   
+      pool.query('SELECT * FROM user', (error, results, fields,res) => {
+        if (error) {
+          console.error('Error executing query: ', error);
+          res.send('Error executing query!');
+  
+        }
+      console.log(fields);
+  
+      //connection.release(); // release the connection back to the pool
+      });
     });
-  });
-﻿
+  
+  
+  
+  
 }

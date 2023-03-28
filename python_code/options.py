@@ -3,15 +3,46 @@ import torch
 
 class Options(object):
     def __init__(self):
+
+        # episode length for pre-training
         self.episode_len = 5000
+
+        # set device to GPU or CPU
         self.device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+        
+        # batch size
         self.batch_size = 16
+
+        # define loss function
+        self.loss_fn = torch.nn.SmoothL1Loss()
+
+        # number of episodes for pre-training
         self.num_episodes = 40
-        self.gamma = 0.9  # foresight in bellman optimality equation
-        self.beta = 0.3  # This is the epsilon decay rate
+
+        # foresight in bellman optimality equation
+        self.gamma = 0.9  
+
+        # This is the epsilon decay rate during pre-training
+        self.beta = 0.3  
+
+        # learning rate for the optimizer
         self.learning_rate = 0.001
+
+        # number of epochs in each episode iteration
         self.num_epochs = 1
+
+        # length of the local or GUI demo
         self.demo_len = 10000
-        self.pre_train = False
-        self.demo_sleep = 0.1 # time.sleep in demo (in seconds)
+
+        # defines how much the simulation is slowed down in the GUI demo
+        self.demo_sleep = 1
+
+        # path to saved models from the root directory of the project
+        self.path_to_model_from_root = "trained_models"
+
+        # name to save a pre-trained model
+        self.model_name_save = "example"
+
+        # name of the pre-trained model to load for local or GUI demo
+        self.model_name_load = "trained_model"
         

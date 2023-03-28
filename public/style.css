@@ -27,9 +27,12 @@ body{
   width: 100%;
   overflow: visible;
 }
+.controls div{
+  float: left;
+}
 .container {
   overflow: hidden;
-  top:70px;
+  top:120px;
   position:absolute;
   left:50%;
   max-width: 550px;
@@ -102,14 +105,16 @@ body{
   float: none;
   margin-left: 5px;
 }
+#location_input{
+  max-width: 150px;
+}
 .room-row span{
   margin-bottom: 5px;
   margin-top: 5px;
 }
-#submit{
-  float:right;
-}
 #submit {
+  position: relative;
+  float:right;
   display: block;
   padding: 6px 15px;
   background-color: #162540;

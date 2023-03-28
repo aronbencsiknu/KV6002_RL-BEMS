@@ -25,8 +25,8 @@ function create_greenhouses(){
     greenhouseContainer.classList.add("greenhouse_container");
     container.appendChild(greenhouseContainer);
     
-    const minTempInput = createInfoSpan(`min-temp-${i+1}`, "GreenHouseTemp");
-    const maxTempInput = createInfoSpan(`max-temp-${i+1}`, "OutsideTemp");
+    const minTempInput = createInfoSpan(`greenhouse-temp-${i+1}`, "GreenHouseTemp");
+    const maxTempInput = createInfoSpan(`outside-temp-${i+1}`, "OutsideTemp");
     const TimeInput = createInfoSpan(`Time-${i+1}`, "Time");
     const Heating_Status= createInfoSpan(`HeatingStatus-${i+1}`, "HeatingStatus");
     const Cooling_status= createInfoSpan(`CoolingStatus-${i+1}`, "CoolingStatus");
@@ -66,7 +66,6 @@ function create_greenhouses(){
       })
       .catch(error => {
         console.error(error); 
-        console.log("sexd: "+i);
       });
   }
 }
@@ -153,12 +152,14 @@ function createInputAndLabel(labelText,id,) {
 // Fetch data from data.json
 function fetchData() {
   for (let i = 0; i < num_greenhouses; i++) {
+    
     fetch(`./json/gh${i + 1}_obs.json`)
       .then(response => response.json())
       .then(data => {
-        const roomData = data[0]; // get the first object in the array
-        const minTempInput = document.getElementById(`min-temp-${i+1}`);
-        const maxTempInput = document.getElementById(`max-temp-${i+1}`);
+        const roomData = data; // get the first object in the array
+        
+        const minTempInput = document.getElementById(`greenhouse-temp-${i+1}`);
+        const maxTempInput = document.getElementById(`outside-temp-${i+1}`);
         const TimetInput = document.getElementById(`Time-${i+1}`);
         const CoolingStatusInput = document.getElementById(`CoolingStatus-${i+1}`);
         const Heating_StatusInput = document.getElementById(`HeatingStatus-${i+1}`);
@@ -172,20 +173,20 @@ function fetchData() {
         while( minTempInput.firstChild ) {
           minTempInput.removeChild( minTempInput.firstChild );
         }
-        minTempInput.appendChild(boldHTML("I Temp: "))
+        //minTempInput.appendChild(boldHTML("I Temp: "))
         minTempInput.appendChild( document.createTextNode(roomData.Greenhouse_temp.toFixed(1)) );
 
         while( maxTempInput.firstChild ) {
           maxTempInput.removeChild( maxTempInput.firstChild );
         }
-        maxTempInput.appendChild(boldHTML("O Temp: "))
+        //maxTempInput.appendChild(boldHTML("O Temp: "))
         maxTempInput.appendChild( document.createTextNode(roomData.Outside_temp.toFixed(1)) );
         
 
         while( TimetInput.firstChild ) {
           TimetInput.removeChild( TimetInput.firstChild );
         }
-        TimetInput.appendChild(boldHTML("Time (d:h:m): "))
+        //TimetInput.appendChild(boldHTML("Time (d:h:m): "))
         TimetInput.appendChild( document.createTextNode(roomData.Time) );
         
 
@@ -198,7 +199,7 @@ function fetchData() {
         else{
           var temp = "On"
         }
-        CoolingStatusInput.appendChild(boldHTML("Vent: "))
+        //CoolingStatusInput.appendChild(boldHTML("Vent: "))
         CoolingStatusInput.appendChild( document.createTextNode(temp) );
 
         while( Heating_StatusInput.firstChild ) {
@@ -210,27 +211,72 @@ function fetchData() {
         else{
           var temp = "On"
         }
-        Heating_StatusInput.appendChild(boldHTML("Heat: "))
+        //Heating_StatusInput.appendChild(boldHTML("Heat: "))
         Heating_StatusInput.appendChild( document.createTextNode(temp) );
 
         while( Average_consumptionInput.firstChild ) {
           Average_consumptionInput.removeChild( Average_consumptionInput.firstChild );
         }
         var temp = roomData.Average_consumption*2.7;
-        Average_consumptionInput.appendChild(boldHTML("Avg Energy (kW): "))
+        //Average_consumptionInput.appendChild(boldHTML("Avg Energy (kW): "))
         Average_consumptionInput.appendChild( document.createTextNode(temp.toFixed(2)) );
-
-
       })
-      .catch(error => console.error(error));  
-    }
+      .catch(error => console.error(error)); 
   }
-setInterval(fetchData, 500);
+  
+}
+setInterval(fetchData, 1000);
 
+function pushData(){
+  var env_data = {
+    env_obs: []
+  };
+  for (let i = 0; i < num_greenhouses; i++) {
+    //console.log(env_data);
+    const greenhouse_temp = document.getElementById(`greenhouse-temp-${i+1}`);
+    const outside_temp = document.getElementById(`outside-temp-${i+1}`);
+    const time = document.getElementById(`Time-${i+1}`);
+    const vent = document.getElementById(`CoolingStatus-${i+1}`);
+    const heat = document.getElementById(`HeatingStatus-${i+1}`);
+    const avg_number = document.getElementById(`AverageConsumption-${i+1}`);
+    //const jsonData = env_data;
+    const obs = {
+      greenhouse_temp: greenhouse_temp.firstChild.data,
+      outside_temp: outside_temp.firstChild.data,
+      time: time.firstChild.data,
+      vent: vent.firstChild.data,
+      heat: heat.firstChild.data,
+      avg_number: avg_number.firstChild.data,
+    };
+    env_data.env_obs.push(obs);
+    
+  }
+  const jsonData = JSON.stringify(env_data);
+  
+  fetch("./write_obs_to_db", {
+      
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: jsonData,
+  })
+    .then((response) => {
+      if (response.ok) {
+        console.log("Data stored successfully");
+        
+      } else {
+        console.error("Failed to store data");
+      }
+    })
+    .catch((error) => {
+      console.log("Error storing data AAAAA");
+    });
+}
+setInterval(pushData, 10000);
 document.addEventListener("DOMContentLoaded", function() { 
   create_greenhouses();
 });
-
 
 function submitData() {
   const inputs = document.querySelectorAll(".room-input");
@@ -240,12 +286,22 @@ function submitData() {
     const roomData = {
       greenhouse_nums: [],
       rooms: [],
+      location: [],
     };
     const numData = {
       prev_num: num_greenhouses,
       current_num: next_num_greenhouses,
     };
+
     roomData.greenhouse_nums.push(numData);
+
+    const location_input = document.getElementById("location_input");
+    const location = {
+      location: location_input.value,
+    }
+
+    roomData.location.push(location);
+    
     for (let i = 1; i <= num_greenhouses; i++) {
       
       const minTempInput = document.getElementById(`room-${i}-min`);
@@ -263,12 +319,13 @@ function submitData() {
         maxTime: maxTimeInput.value,
         rateOfChange: rateInput.value,
       };
-
       roomData.rooms.push(room);
       
     }
     console.log(roomData);
     const jsonData = JSON.stringify(roomData);
+    //console.log(jsonData);
+    
     fetch("./write_to_json", {
       
       method: "POST",
@@ -296,6 +353,8 @@ function submitData() {
     alert("Please fill all values.");
   }
 }
+
+
 //const submitButton = document.createElement("button");
 //submitButton.textContent = "Submit";
 const submit_button = document.getElementById("submit");

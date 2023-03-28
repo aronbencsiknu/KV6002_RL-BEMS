@@ -14,11 +14,11 @@ This project was made as part of the KV6002 Team Project and Professionalism mod
 After opening the root directory of the project in the command prompt, there are 3 ways to run the project:
 
 ### Pre-train
-To pre-train a reinforcement learning model, run ```python python_code/main.py --pretrain```.
+To pre-train a reinforcement learning model, run ```python python_code/main.py -p```.
 This trains a model and saves it in the directory trained_model
   
 ### Local demo
-To locally test a model, run ```python python_code/main.py --localdemo```.
+To locally test a model, run ```python python_code/main.py -l```.
 This loads a pre-trained model and runs the simulation without slowing down. An example RL model is included in the directory /trained_models. This will also draw a nice matplotlib chart with all the environment observations and agent actions.
 
 ### Run GUI

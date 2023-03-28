@@ -7,8 +7,8 @@ This project was made as part of the KV6002 Team Project and Professionalism mod
 1. [Install Python](https://www.python.org/downloads/)
 2. [Install Node.js](https://nodejs.org/en/download)
 3. Open the root directory of the project in the command prompt
-4. Type```npm install```to install the modules required by Node.js
-5. Type```pip install -r requirements.txt``` to install the libraries required by Python
+4. Type ```npm install``` to install the modules required by Node.js
+5. Type ```pip install -r requirements.txt``` to install the libraries required by Python
 
 ## How to run
 ### There are 3 ways to run the project:

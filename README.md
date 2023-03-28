@@ -25,3 +25,4 @@ This loads a pre-trained model and runs the simulation without slowing down. An 
 To see the GUI in action, run ```node app.js``` in the root directory.
 This starts the server and runs main.py. In this case main.py is called without specifying a flag. Without a specified flag, main.py loads a pre-trained model and runs the simulation. Furthermore, it communicates with the Node.js server through JSON files in directory /public/json. In this case the simulation is slowed down.
 
+## Further explanation

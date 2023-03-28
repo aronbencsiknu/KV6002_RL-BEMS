@@ -26,3 +26,6 @@ To see the GUI in action, run ```node app.js``` in the root directory.
 This starts the server and runs main.py. In this case main.py is called without specifying a flag. Without a specified flag, main.py loads a pre-trained model and runs the simulation. Furthermore, it communicates with the Node.js server through JSON files in directory /public/json. In this case the simulation is slowed down.
 
 ## Further explanation
+
+Deep Q-learning is a type of a Reinforcement Learning (RL) algorithm, which is commonly employed to automate and optimize intricate decision-making processes. RL based HVAC control has been effectively applied in residential and commercial buildings, resulting in up to a 20% decrease in electricity consumption. However, the potential of RL for greenhouse energy management has yet to be fully explored in the scientific literature, despite the opportunity for even more substantial savings.
+RL algorithms are typically pre-trained in simulated environments, utilizing a numerical reward signal to guide their learning. Subsequently, the pre-trained model can be transferred to real-world scenarios, allowing for quick adaptation to unique environmental features. Notably, RL has the capacity to take into account weather forecasts, representing a critical factor in the significant potential for energy savings.

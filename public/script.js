@@ -1,5 +1,5 @@
 var num_greenhouses = 1;
-var h_logging = true;
+var h_logging = false;
 
 // get the container element
 const container = document.querySelector(".container");

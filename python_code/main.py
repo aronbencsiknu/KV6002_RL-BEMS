@@ -52,16 +52,21 @@ obs_count = len(observation)  # get the number of environment observations
 
 # number of possible actions (heat on, vent closed; vent open, heat off; both off)
 action_count = 3 
+
 model = DQN(obs_count, action_count).to(opt.device)
+if not args.pretrain:
+    # load saved model
+    current_dir = pathlib.Path(__file__).resolve()
+    parent_dir = current_dir.parents[1]
+    path = pathlib.Path(parent_dir / opt.path_to_model_from_root / opt.model_name_load)
+    model.load_state_dict(torch.load(path, map_location=torch.device(opt.device)))
+
 loss_fn = opt.loss_fn
 optimizer = torch.optim.AdamW(model.parameters(), lr=opt.learning_rate)  # AdamW optimizer
 beta = opt.beta  # epsilon decay rate
 
-# lists
-rewards = []  # historical reward values
-loss = []  # historical loss values
-epsilons = []  # historical epsilon values
-memory = deque([], maxlen=2500)  # experience memory
+# experience memory
+memory = deque([], maxlen=2500)  
 
 
 # %% function definitions
@@ -140,7 +145,7 @@ def run_iter(obs_t, epsilon):
     """
 
     # explore
-    if np.random.random() <= epsilon:
+    if np.random.random() < epsilon:
         action_index = random.randint(0, action_count - 1)
 
     # exploit
@@ -206,7 +211,6 @@ if args.pretrain:
         obs_t = environment.get_state()
 
         epsilon = 1 / (1 + opt.beta * (episode / action_count))
-        epsilons.append(epsilon)
 
         bar_title = "Episode " + str(episode + 1) + " of " + str(opt.num_episodes)
         bar = ShadyBar(bar_title, max=opt.episode_len)
@@ -237,8 +241,6 @@ if args.pretrain:
             obs_t, reward_value, r1, r2, r3 = run_iter(obs_t, epsilon)
             
             total_reward += reward_value
-
-            # early stopping
             
 
             # train DQN and calculate loss
@@ -285,12 +287,9 @@ if args.pretrain:
 
 # run local or GUI demo
 else:
+    
     obs_t = environment.get_state()
-    # load saved model
-    current_dir = pathlib.Path(__file__).resolve()
-    parent_dir = current_dir.parents[1]
-    path = pathlib.Path(parent_dir / opt.path_to_model_from_root / opt.model_name_load)
-    model.load_state_dict(torch.load(path, map_location=torch.device(opt.device)))
+    epsilon = 0
     
     # add progress bar for local demo
     if args.localdemo:
@@ -325,12 +324,7 @@ else:
         else:
             bar.next()  # update progress bar
 
-        obs_t = environment.get_state()
-
-        epsilon = 0
-        epsilons.append(epsilon)
-
-        obs_t, reward_value, _, _, _ = run_iter(obs_t, epsilon)
+        obs_t, reward_value, r1, r2, r3 = run_iter(obs_t, epsilon)
 
         total_reward += reward_value
 

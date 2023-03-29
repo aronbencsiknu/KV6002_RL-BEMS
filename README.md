@@ -31,3 +31,6 @@ Deep Q-learning is a type of a Reinforcement Learning (RL) algorithm, which is c
 RL algorithms are typically pre-trained in simulated environments, utilizing a numerical reward signal to guide their learning. Subsequently, the pre-trained model can be transferred to real-world scenarios, allowing for quick adaptation to unique environmental features. Notably, RL has the capacity to take into account weather forecasts, representing a critical factor in the significant potential for energy savings.
 
 In this project, the agent is trained on a simulated greenhouse environment with artificially generated weather and weather forecast data. The reward mechanism is based on that outlined in https://www.sciencedirect.com/science/article/pii/S2666546820300434, with some modifications, to account for the intricate heat tolerances of plants. The supervised data for the DQN is generated using the method first proposed in https://arxiv.org/pdf/1312.5602.pdf. Supervised data is obtained using the Bellman optimality equation ...
+
+$$Q(s_t ,a_t )= \alpha[r_t+1 + \gamma maxQ(s_t+1 ,a_t+1 )-Q(s_t ,a_t)]$$
+

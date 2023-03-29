@@ -17,13 +17,13 @@ class Options(object):
         self.loss_fn = torch.nn.SmoothL1Loss()
 
         # number of episodes for pre-training
-        self.num_episodes = 40
+        self.num_episodes = 30
 
         # foresight in bellman optimality equation
         self.gamma = 0.9  
 
         # This is the epsilon decay rate during pre-training
-        self.beta = 0.3  
+        self.beta = 0.3
 
         # learning rate for the optimizer
         self.learning_rate = 0.001
@@ -44,5 +44,9 @@ class Options(object):
         self.model_name_save = "example"
 
         # name of the pre-trained model to load for local or GUI demo
-        self.model_name_load = "trained_model"
+        self.model_name_load = "example"
+
+        #  set wether to log data to Weights&Biases
+        self.wandb = False
+        self.wandb_key = "edfb94e4b9dca47c397a343d2829e9af262d9e32"
         

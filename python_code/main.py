@@ -11,6 +11,7 @@ from datetime import datetime
 import time
 import argparse
 import os
+import wandb
 
 from environment import Environment  # import environment simulation
 from options import Options  # import options
@@ -166,14 +167,15 @@ def run_iter(obs_t, epsilon):
     obs_t_next = environment.get_state()
 
     # calculate reward (will be a call to another file)
-    reward_value = reward.calculate_reward(environment.greenhouse.temp, environment.H_temp,
+    reward_value, r1, r2, r3 = reward.calculate_reward(environment.greenhouse.temp, environment.H_temp,
                                            heating)  # input current variables here
+    
 
     # append to experience memory
     memory.append((obs_t, action_index, reward_value, obs_t_next))
     obs_t = obs_t_next
 
-    return obs_t, reward_value
+    return obs_t, reward_value, r1, r2, r3
 
 
 # %% program run
@@ -186,6 +188,17 @@ if not args.pretrain and not args.localdemo:
 
 # run pre-training
 if args.pretrain:
+
+    # optional WandB logging
+    if opt.wandb:
+        key=opt.wandb_key
+        wandb.login(key=key)
+        wandb_group = "test"
+
+        wandb.init(project="RL_GEMS", 
+                group=wandb_group, entity="aronbencsik", 
+                settings=wandb.Settings(start_method="thread"))
+        
     for episode in range(opt.num_episodes):
         environment = Environment(
             0.1,  # cloudiness
@@ -199,9 +212,18 @@ if args.pretrain:
         bar = ShadyBar(bar_title, max=opt.episode_len)
 
         total_reward = 0
-        for ep_index in range(opt.episode_len):
 
-            if ep_index % 500 == 0:
+        # wandb logging averages
+        wandb_avg_r1 = 0
+        wandb_avg_r2 = 0
+        wandb_avg_r3 = 0
+        wandb_avg_r_t = 0
+        wandb_avg_l = 0
+
+        for ep_index in range(opt.episode_len):
+            
+            #if ep_index % 500 == 0:
+            if True == False:
                 midpoint = random.randint(22, 23)
 
                 # training DQN to deal with changing reward values
@@ -212,7 +234,8 @@ if args.pretrain:
                               max_crit_time=random.randint(30, 60),
                               max_allowed_temp_change=random.randint(1, 5))
 
-            obs_t, reward_value = run_iter(obs_t, epsilon)
+            obs_t, reward_value, r1, r2, r3 = run_iter(obs_t, epsilon)
+            
             total_reward += reward_value
 
             # early stopping
@@ -220,7 +243,29 @@ if args.pretrain:
 
             # train DQN and calculate loss
             if len(memory) > opt.batch_size:
+                
                 loss = experience_replay(model, opt.batch_size, memory, obs_count, opt.num_epochs)
+                if opt.wandb:
+                    wandb_avg_r1 += r1
+                    wandb_avg_r2 += r2
+                    wandb_avg_r3 += r3
+                    wandb_avg_r_t += reward_value
+                    wandb_avg_l += np.mean(np.asarray(loss))
+
+                    if ep_index % 50 == 0:
+                
+                        wandb.log({"Loss": wandb_avg_l/50,
+                        "Total reward": wandb_avg_r_t/50,
+                        "Temp range reward": wandb_avg_r1/50,
+                        "Energy reward": wandb_avg_r2/50,
+                        "Temp change reward": wandb_avg_r3/50})
+
+                        wandb_avg_r1 = 0
+                        wandb_avg_r2 = 0
+                        wandb_avg_r3 = 0
+                        wandb_avg_r_t = 0
+                        wandb_avg_l = 0
+
 
             bar.next()  # update progress bar
 
@@ -234,23 +279,18 @@ if args.pretrain:
     current_dateTime = datetime.now()
     current_dir = pathlib.Path(__file__).resolve()
     parent_dir = current_dir.parents[1]
-    path = pathlib.Path(parent_dir / opt.path_to_model_from_root / opt.model_name_load)
+    path = pathlib.Path(parent_dir / opt.path_to_model_from_root / opt.model_name_save)
     torch.save(model.state_dict(), path)
     plotting.plot(environment)
 
 # run local or GUI demo
 else:
-
+    obs_t = environment.get_state()
     # load saved model
     current_dir = pathlib.Path(__file__).resolve()
     parent_dir = current_dir.parents[1]
     path = pathlib.Path(parent_dir / opt.path_to_model_from_root / opt.model_name_load)
     model.load_state_dict(torch.load(path, map_location=torch.device(opt.device)))
-    
-    """reward = Reward()
-    environment = Environment(
-        0.1,  # cloudiness
-        0.5)  # energy_consumption"""
     
     # add progress bar for local demo
     if args.localdemo:
@@ -290,7 +330,7 @@ else:
         epsilon = 0
         epsilons.append(epsilon)
 
-        obs_t, reward_value = run_iter(obs_t, epsilon)
+        obs_t, reward_value, _, _, _ = run_iter(obs_t, epsilon)
 
         total_reward += reward_value
 

@@ -20,7 +20,7 @@ const { spawn } = require('child_process');
 
 const pyScripts = [];
 
-const useDatabase = true;
+const useDatabase = false;
 
 const apiKey = "8a444a761bdf366d120c7f07191093b5";
 

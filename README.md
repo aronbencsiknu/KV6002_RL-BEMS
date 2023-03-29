@@ -32,5 +32,5 @@ RL algorithms are typically pre-trained in simulated environments, utilizing a n
 
 In this project, the agent is trained on a simulated greenhouse environment with artificially generated weather and weather forecast data. The reward mechanism is based on that outlined in https://www.sciencedirect.com/science/article/pii/S2666546820300434, with some modifications, to account for the intricate heat tolerances of plants. The supervised data for the DQN is generated using the method first proposed in https://arxiv.org/pdf/1312.5602.pdf. Supervised data is obtained using the Bellman optimality equation ...
 
-$\left(s_t ,a_t \right)
+$Q(s_t ,a_t )= \alpha[r_t+1 + \gamma maxQ(s_t+1 ,a_t+1 )-Q(s_t ,a_t)]$
 

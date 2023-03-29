@@ -1,4 +1,5 @@
-var num_greenhouses = 1
+var num_greenhouses = 1;
+var h_logging = true;
 
 // get the container element
 const container = document.querySelector(".container");
@@ -158,68 +159,101 @@ function fetchData() {
       .then(data => {
         const roomData = data; // get the first object in the array
         
-        const minTempInput = document.getElementById(`greenhouse-temp-${i+1}`);
-        const maxTempInput = document.getElementById(`outside-temp-${i+1}`);
+        const outsideTempInput = document.getElementById(`greenhouse-temp-${i+1}`);
+        const insideTempInput = document.getElementById(`outside-temp-${i+1}`);
         const TimetInput = document.getElementById(`Time-${i+1}`);
         const CoolingStatusInput = document.getElementById(`CoolingStatus-${i+1}`);
         const Heating_StatusInput = document.getElementById(`HeatingStatus-${i+1}`);
         const Average_consumptionInput = document.getElementById(`AverageConsumption-${i+1}`);
-        function boldHTML(text) {
-          var element = document.createElement("b");
-          element.innerHTML = text;
-          return element;
-        }
         // displaying environment observations
-        while( minTempInput.firstChild ) {
-          minTempInput.removeChild( minTempInput.firstChild );
-        }
-        //minTempInput.appendChild(boldHTML("I Temp: "))
-        minTempInput.appendChild( document.createTextNode(roomData.Greenhouse_temp.toFixed(1)) );
 
-        while( maxTempInput.firstChild ) {
-          maxTempInput.removeChild( maxTempInput.firstChild );
-        }
+        
+
+        outsideTempInput.innerHTML = '';
+        var span1 = document.createElement('span');
+        var span2 = document.createElement('span');
+        outsideTempInput.appendChild(span1);
+        outsideTempInput.appendChild(span2);
+        outsideTempInput.children[0].innerHTML =  "O Temp: ";
+        outsideTempInput.children[1].innerHTML =  roomData.Greenhouse_temp.toFixed(1);
+        //minTempInput.appendChild( span.innerHTML = roomData.Greenhouse_temp.toFixed(1));
+
+        insideTempInput.innerHTML = '';
+        span1 = document.createElement('span');
+        span2 = document.createElement('span');
+        insideTempInput.appendChild(span1);
+        insideTempInput.appendChild(span2);
+        insideTempInput.children[0].innerHTML =  "I Temp: ";
+        insideTempInput.children[1].innerHTML =  roomData.Outside_temp.toFixed(1);
         //maxTempInput.appendChild(boldHTML("O Temp: "))
-        maxTempInput.appendChild( document.createTextNode(roomData.Outside_temp.toFixed(1)) );
+        //maxTempInput.appendChild( document.createTextNode(roomData.Outside_temp.toFixed(1)) );
         
 
-        while( TimetInput.firstChild ) {
-          TimetInput.removeChild( TimetInput.firstChild );
-        }
+        TimetInput.innerHTML = '';
+        span1 = document.createElement('span');
+        span2 = document.createElement('span');
+        TimetInput.appendChild(span1);
+        TimetInput.appendChild(span2);
+        TimetInput.children[0].innerHTML =  "Time (d:h:m): ";
+        TimetInput.children[1].innerHTML =  roomData.Time;
         //TimetInput.appendChild(boldHTML("Time (d:h:m): "))
-        TimetInput.appendChild( document.createTextNode(roomData.Time) );
+        //TimetInput.appendChild( document.createTextNode(roomData.Time) );
         
 
-        while( CoolingStatusInput.firstChild ) {
-          CoolingStatusInput.removeChild( CoolingStatusInput.firstChild );
-        }
+        
         if (roomData.Ventilation == 0){
           var temp = "Off";
         }
         else{
           var temp = "On"
         }
-        //CoolingStatusInput.appendChild(boldHTML("Vent: "))
-        CoolingStatusInput.appendChild( document.createTextNode(temp) );
 
-        while( Heating_StatusInput.firstChild ) {
-          Heating_StatusInput.removeChild( Heating_StatusInput.firstChild );
-        }
+        CoolingStatusInput.innerHTML = '';
+        span1 = document.createElement('span');
+        span2 = document.createElement('span');
+        CoolingStatusInput.appendChild(span1);
+        CoolingStatusInput.appendChild(span2);
+        CoolingStatusInput.children[0].innerHTML =  "Vent: ";
+        CoolingStatusInput.children[1].innerHTML =  temp;
+        //CoolingStatusInput.appendChild(boldHTML("Vent: "))
+        //CoolingStatusInput.appendChild( document.createTextNode(temp) );
+
+        
         if (roomData.Heating == 0){
           var temp = "Off";
         }
         else{
           var temp = "On"
         }
-        //Heating_StatusInput.appendChild(boldHTML("Heat: "))
-        Heating_StatusInput.appendChild( document.createTextNode(temp) );
 
-        while( Average_consumptionInput.firstChild ) {
-          Average_consumptionInput.removeChild( Average_consumptionInput.firstChild );
+        Heating_StatusInput.innerHTML = '';
+        span1 = document.createElement('span');
+        span2 = document.createElement('span');
+        Heating_StatusInput.appendChild(span1);
+        Heating_StatusInput.appendChild(span2);
+        Heating_StatusInput.children[0].innerHTML =  "Heat: ";
+        Heating_StatusInput.children[1].innerHTML =  temp;
+        //Heating_StatusInput.appendChild(boldHTML("Heat: "))
+        //Heating_StatusInput.appendChild( document.createTextNode(temp) );
+
+        
+        if (roomData.Average_consumption == -5){
+          var temp = "buffering"
         }
-        var temp = roomData.Average_consumption*2.7;
+        else{
+          var temp = roomData.Average_consumption*2.7;
+          temp = temp.toFixed(2);
+        }
+        
+        Average_consumptionInput.innerHTML = '';
+        span1 = document.createElement('span');
+        span2 = document.createElement('span');
+        Average_consumptionInput.appendChild(span1);
+        Average_consumptionInput.appendChild(span2);
+        Average_consumptionInput.children[0].innerHTML =  "Avg Energy (kW): ";
+        Average_consumptionInput.children[1].innerHTML =  temp;
         //Average_consumptionInput.appendChild(boldHTML("Avg Energy (kW): "))
-        Average_consumptionInput.appendChild( document.createTextNode(temp.toFixed(2)) );
+        //Average_consumptionInput.appendChild( document.createTextNode(temp));
       })
       .catch(error => console.error(error)); 
   }
@@ -241,12 +275,12 @@ function pushData(){
     const avg_number = document.getElementById(`AverageConsumption-${i+1}`);
     //const jsonData = env_data;
     const obs = {
-      greenhouse_temp: greenhouse_temp.firstChild.data,
-      outside_temp: outside_temp.firstChild.data,
-      time: time.firstChild.data,
-      vent: vent.firstChild.data,
-      heat: heat.firstChild.data,
-      avg_number: avg_number.firstChild.data,
+      greenhouse_temp: greenhouse_temp.children[1].innerHTML,
+      outside_temp: outside_temp.children[1].innerHTML,
+      time: time.children[1].innerHTML,
+      vent: vent.children[1].innerHTML,
+      heat: heat.children[1].innerHTML,
+      avg_number: avg_number.children[1].innerHTML,
     };
     env_data.env_obs.push(obs);
     
@@ -270,10 +304,13 @@ function pushData(){
       }
     })
     .catch((error) => {
-      console.log("Error storing data AAAAA");
+      console.log("Error storing data");
     });
 }
-setInterval(pushData, 10000);
+if (h_logging){
+  setInterval(pushData, 10000);
+}
+
 document.addEventListener("DOMContentLoaded", function() { 
   create_greenhouses();
 });
@@ -354,9 +391,5 @@ function submitData() {
   }
 }
 
-
-//const submitButton = document.createElement("button");
-//submitButton.textContent = "Submit";
 const submit_button = document.getElementById("submit");
 submit_button.addEventListener("click", submitData);
-//container.appendChild(submitButton);

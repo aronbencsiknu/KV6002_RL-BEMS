@@ -289,7 +289,7 @@ function pushData(){
     });
 }
 if (h_logging){
-  setInterval(pushData, 10000);
+  setInterval(pushData, 60000);
 }
 
 function submitData() {

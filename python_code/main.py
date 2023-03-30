@@ -81,7 +81,7 @@ beta = opt.beta  # epsilon decay rate
 memory = deque([], maxlen=2500)  # experience memory
 
 # %% function definitions
-def experience_replay(model, batch_size, memory, obs_count, epoch_count):
+def experience_replay(model, batch_size, memory, obs_count):
     """
     Creates the IIDD supervised data from the experience memory, to train the DQN
     :param model: DQN network
@@ -99,27 +99,27 @@ def experience_replay(model, batch_size, memory, obs_count, epoch_count):
     obs_t = np.zeros(shape=(batch_size, obs_count))
     obs_t_next = np.zeros(shape=(batch_size, obs_count))
 
+    # store observations at time t and time t+1 from the batch vector
     for i in range(len(batch_vector)):
         obs_t[i] = batch_vector[i, 0]
         obs_t_next[i] = batch_vector[i, 3]
 
-    #print(obs_t)
     # predict actions for time t and time t+1
     with torch.no_grad():
         prediction_at_t = model(torch.tensor(obs_t).float().to(opt.device)).to("cpu")
         prediction_at_t_next = model(torch.tensor(obs_t_next).float().to(opt.device)).to("cpu")
 
-    X = []  # data list
+    X = []  # training samples list
     y = []  # target list
 
     i = 0
     for obs_t, action, reward_value, _ in batch_vector:
-        # append to data list
-        X.append(obs_t)
+
+        X.append(obs_t)  # append training sample list
 
         """ 
         bellman optimality equation:
-        target = reward + foresight * argmax(DQN(obs_t+1))
+        target = reward + discount_rate * argmax(DQN(obs_t+1))
 
         """
         target = reward_value + opt.gamma * np.max(prediction_at_t_next[i].numpy())
@@ -128,8 +128,7 @@ def experience_replay(model, batch_size, memory, obs_count, epoch_count):
         prediction_at_t[i, action] = target
 
         # append to target list
-        y.append(
-            prediction_at_t[i].numpy())
+        y.append(prediction_at_t[i].numpy())
 
         i += 1
 
@@ -138,7 +137,7 @@ def experience_replay(model, batch_size, memory, obs_count, epoch_count):
 
     loss_avg = 0
     model.train()
-    for epoch in range(epoch_count):
+    for epoch in range(opt.num_epochs):
 
         # Forward pass
         y_pred = model(torch.tensor(X).float().to(opt.device))
@@ -267,7 +266,7 @@ if args.pretrain:
             # train DQN and calculate loss
             if len(memory) > opt.batch_size:
                 
-                loss= experience_replay(model, opt.batch_size, memory, obs_count, opt.num_epochs)
+                loss= experience_replay(model, opt.batch_size, memory, obs_count)
                 loss_avg += loss
 
                 if args.wandb:
@@ -387,7 +386,7 @@ else:
         
         if len(memory) > opt.batch_size:
             # train DQN and calculate loss
-            loss_avg += experience_replay(model, opt.batch_size, memory, obs_count, opt.num_epochs)
+            loss_avg += experience_replay(model, opt.batch_size, memory, obs_count)
 
     # finish progress bar and plot environment for local demo
     if args.localdemo:

@@ -1,6 +1,5 @@
 
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500&family=Space+Mono&display=swap');
-/*@import url('https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@500&display=swap');*/
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700&display=swap');
 
 *{
   box-sizing: border-box;
@@ -46,7 +45,7 @@ body{
   grid-template-areas: "a a" "b c " "b c";
   grid-gap: 15px;
   padding: 5px 20px 15px 20px;
-  border: 1px solid #cfcfcf;
+  border: 1px solid #c3c3c3;
   background-color: white ;
   margin-bottom: 20px;
   grid-template-columns: 1fr 260px;
@@ -59,7 +58,8 @@ body{
   line-height: 1.7em;
   width: 100%;
   grid-area: a;
-  border-bottom: 1px solid #cfcfcf;
+  border-bottom: 1px solid #c3c3c3;
+  font-weight: 700;
 }
 
 .room-container {
@@ -69,10 +69,10 @@ body{
 .info_container{
   width: 100%;
   grid-area: b;
-  border-right: 1px solid #cfcfcf;
+  border-right: 1px solid #c3c3c3;
 }
 .info_container .room-row span span:first-child{
-  font-weight: bold;
+  font-weight: 700;
 }
 .info_container .room-row span span:nth-child(2){
   float: right;
@@ -84,6 +84,9 @@ body{
   width: 100%;
   grid-area: c;
   padding-left: 30px;
+}
+.input_container label{
+  font-weight: 700;
 }
 .room-input {
   margin-bottom: 8px;
@@ -98,7 +101,7 @@ body{
   max-width: 55px;
   width: 100%;
   float: right;
-  border: 1px solid #cfcfcf;
+  border: 1px solid #c3c3c3;
   border-radius: 2px;
   font-family: inherit;
   color: #50555b;

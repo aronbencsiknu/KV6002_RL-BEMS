@@ -1,21 +1,23 @@
-var num_greenhouses = 1;
+// ENABLE DATABASE LOGGING HERE
 var h_logging = false;
+
+var num_greenhouses = 1;
 
 // get the container element
 const container = document.querySelector(".container");
 
-  var num_greenhouses_field = document.getElementById("num_greenhouses")
-  var next_num_greenhouses = 1;
-  num_greenhouses_field.addEventListener('input', function (evt) {
-    if(this.value>0 || this.value !== null){
-      next_num_greenhouses = this.value;
-    }
-    else{
-      next_num_greenhouses = 1;
-    }
-    console.log("next greenhouse num: "+next_num_greenhouses);
-    
+var num_greenhouses_field = document.getElementById("num_greenhouses")
+var next_num_greenhouses = 1;
+num_greenhouses_field.addEventListener('input', function (evt) {
+  if(this.value>0 || this.value !== null){
+    next_num_greenhouses = this.value;
+  }
+  else{
+    next_num_greenhouses = 1;
+  }
+  
 });
+
 // Create rooms
 function create_greenhouses(){
   
@@ -165,10 +167,8 @@ function fetchData() {
         const CoolingStatusInput = document.getElementById(`CoolingStatus-${i+1}`);
         const Heating_StatusInput = document.getElementById(`HeatingStatus-${i+1}`);
         const Average_consumptionInput = document.getElementById(`AverageConsumption-${i+1}`);
+
         // displaying environment observations
-
-        
-
         outsideTempInput.innerHTML = '';
         var span1 = document.createElement('span');
         var span2 = document.createElement('span');
@@ -176,7 +176,6 @@ function fetchData() {
         outsideTempInput.appendChild(span2);
         outsideTempInput.children[0].innerHTML =  "O Temp: ";
         outsideTempInput.children[1].innerHTML =  roomData.Greenhouse_temp.toFixed(1);
-        //minTempInput.appendChild( span.innerHTML = roomData.Greenhouse_temp.toFixed(1));
 
         insideTempInput.innerHTML = '';
         span1 = document.createElement('span');
@@ -185,9 +184,6 @@ function fetchData() {
         insideTempInput.appendChild(span2);
         insideTempInput.children[0].innerHTML =  "I Temp: ";
         insideTempInput.children[1].innerHTML =  roomData.Outside_temp.toFixed(1);
-        //maxTempInput.appendChild(boldHTML("O Temp: "))
-        //maxTempInput.appendChild( document.createTextNode(roomData.Outside_temp.toFixed(1)) );
-        
 
         TimetInput.innerHTML = '';
         span1 = document.createElement('span');
@@ -196,10 +192,6 @@ function fetchData() {
         TimetInput.appendChild(span2);
         TimetInput.children[0].innerHTML =  "Time (d:h:m): ";
         TimetInput.children[1].innerHTML =  roomData.Time;
-        //TimetInput.appendChild(boldHTML("Time (d:h:m): "))
-        //TimetInput.appendChild( document.createTextNode(roomData.Time) );
-        
-
         
         if (roomData.Ventilation == 0){
           var temp = "Off";
@@ -207,7 +199,6 @@ function fetchData() {
         else{
           var temp = "On"
         }
-
         CoolingStatusInput.innerHTML = '';
         span1 = document.createElement('span');
         span2 = document.createElement('span');
@@ -215,9 +206,6 @@ function fetchData() {
         CoolingStatusInput.appendChild(span2);
         CoolingStatusInput.children[0].innerHTML =  "Vent: ";
         CoolingStatusInput.children[1].innerHTML =  temp;
-        //CoolingStatusInput.appendChild(boldHTML("Vent: "))
-        //CoolingStatusInput.appendChild( document.createTextNode(temp) );
-
         
         if (roomData.Heating == 0){
           var temp = "Off";
@@ -225,7 +213,6 @@ function fetchData() {
         else{
           var temp = "On"
         }
-
         Heating_StatusInput.innerHTML = '';
         span1 = document.createElement('span');
         span2 = document.createElement('span');
@@ -233,27 +220,21 @@ function fetchData() {
         Heating_StatusInput.appendChild(span2);
         Heating_StatusInput.children[0].innerHTML =  "Heat: ";
         Heating_StatusInput.children[1].innerHTML =  temp;
-        //Heating_StatusInput.appendChild(boldHTML("Heat: "))
-        //Heating_StatusInput.appendChild( document.createTextNode(temp) );
-
         
         if (roomData.Average_consumption == -5){
-          var temp = "buffering"
+          var temp = "-"
         }
         else{
           var temp = roomData.Average_consumption*2.7;
           temp = temp.toFixed(2);
         }
-        
         Average_consumptionInput.innerHTML = '';
         span1 = document.createElement('span');
         span2 = document.createElement('span');
         Average_consumptionInput.appendChild(span1);
         Average_consumptionInput.appendChild(span2);
-        Average_consumptionInput.children[0].innerHTML =  "Avg Energy (kW): ";
+        Average_consumptionInput.children[0].innerHTML =  "Avg Energy/H (kW): ";
         Average_consumptionInput.children[1].innerHTML =  temp;
-        //Average_consumptionInput.appendChild(boldHTML("Avg Energy (kW): "))
-        //Average_consumptionInput.appendChild( document.createTextNode(temp));
       })
       .catch(error => console.error(error)); 
   }
@@ -311,10 +292,6 @@ if (h_logging){
   setInterval(pushData, 10000);
 }
 
-document.addEventListener("DOMContentLoaded", function() { 
-  create_greenhouses();
-});
-
 function submitData() {
   const inputs = document.querySelectorAll(".room-input");
   const allFilled = Array.from(inputs).every((input) => input.value !== "");
@@ -359,9 +336,7 @@ function submitData() {
       roomData.rooms.push(room);
       
     }
-    console.log(roomData);
     const jsonData = JSON.stringify(roomData);
-    //console.log(jsonData);
     
     fetch("./write_to_json", {
       
@@ -393,3 +368,9 @@ function submitData() {
 
 const submit_button = document.getElementById("submit");
 submit_button.addEventListener("click", submitData);
+
+document.addEventListener("DOMContentLoaded", function() { 
+  var num_greenhouses_field = document.getElementById("num_greenhouses")
+  num_greenhouses_field.value = 1;
+  create_greenhouses();
+});

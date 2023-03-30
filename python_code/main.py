@@ -23,13 +23,22 @@ from model import DQN  # import DQN model
 
 # parse arguments
 parser = argparse.ArgumentParser()
-parser.add_argument("-l", "--localdemo", help="increase output verbosity",
+
+# argument for local demo
+parser.add_argument("-l", "--localdemo", help="run demo locally without connecting to the server",
                     action="store_true")
 
-parser.add_argument("-p", "--pretrain", help="increase output verbosity",
+# argument for training
+parser.add_argument("-p", "--pretrain", help="train a new model",
                     action="store_true")
 
+# argument for wandb logging
+parser.add_argument("-wb", "--wandb", help="log to weights&biases",
+                    action="store_true")
+
+# argument used during GUI demo to define the greenhouse indices
 parser.add_argument("-g",'--gindex', type=int)
+
 args = parser.parse_args()
 
 # from plotting import Plot
@@ -53,21 +62,23 @@ obs_count = len(observation)  # get the number of environment observations
 # number of possible actions (heat on, vent closed; vent open, heat off; both off)
 action_count = 3 
 
+# initialize DQN
 model = DQN(obs_count, action_count).to(opt.device)
+
 if not args.pretrain:
+
     # load saved model
     current_dir = pathlib.Path(__file__).resolve()
     parent_dir = current_dir.parents[1]
     path = pathlib.Path(parent_dir / opt.path_to_model_from_root / opt.model_name_load)
     model.load_state_dict(torch.load(path, map_location=torch.device(opt.device)))
 
-loss_fn = opt.loss_fn
 optimizer = torch.optim.AdamW(model.parameters(), lr=opt.learning_rate)  # AdamW optimizer
+model.eval()
+
+loss_fn = opt.loss_fn  # loss function
 beta = opt.beta  # epsilon decay rate
-
-# experience memory
-memory = deque([], maxlen=2500)  
-
+memory = deque([], maxlen=2500)  # experience memory
 
 # %% function definitions
 def experience_replay(model, batch_size, memory, obs_count, epoch_count):
@@ -80,63 +91,71 @@ def experience_replay(model, batch_size, memory, obs_count, epoch_count):
     :param epoch_count: epoch count for training the DQN
     :return:
     """
+    
+    batch = random.sample(memory, batch_size)  # get random batch from memory with size batch_size
+    batch_vector = np.array(batch, dtype=object)
+
+    # create np arrays with correct shapes
+    obs_t = np.zeros(shape=(batch_size, obs_count))
+    obs_t_next = np.zeros(shape=(batch_size, obs_count))
+
+    for i in range(len(batch_vector)):
+        obs_t[i] = batch_vector[i, 0]
+        obs_t_next[i] = batch_vector[i, 3]
+
+    #print(obs_t)
+    # predict actions for time t and time t+1
     with torch.no_grad():
-        batch = random.sample(memory, batch_size)  # get random batch from memory with size batch_size
-        batch_vector = np.array(batch, dtype=object)
-
-        # create np arrays with correct shapes
-        obs_t = np.zeros(shape=(batch_size, obs_count))
-        obs_t_next = np.zeros(shape=(batch_size, obs_count))
-
-        for i in range(len(batch_vector)):
-            obs_t[i] = batch_vector[i, 0]
-            obs_t_next[i] = batch_vector[i, 3]
-
-        #print(obs_t)
-        # predict actions for time t and time t+1
-        prediction_at_t = model(torch.tensor(obs_t).float().to(opt.device).float()).to("cpu")
+        prediction_at_t = model(torch.tensor(obs_t).float().to(opt.device)).to("cpu")
         prediction_at_t_next = model(torch.tensor(obs_t_next).float().to(opt.device)).to("cpu")
 
-        X = []  # data list
-        y = []  # target list
+    X = []  # data list
+    y = []  # target list
 
-        i = 0
-        for obs_t, action, reward_value, _ in batch_vector:
-            # append to data list
-            X.append(obs_t)
+    i = 0
+    for obs_t, action, reward_value, _ in batch_vector:
+        # append to data list
+        X.append(obs_t)
 
-            # bellman optimality equation
-            target = reward_value + opt.gamma * np.max(prediction_at_t_next[i].numpy())
+        """ 
+        bellman optimality equation:
+        target = reward + foresight * argmax(DQN(obs_t+1))
 
-            # update action value
-            prediction_at_t[i, action] = target
+        """
+        target = reward_value + opt.gamma * np.max(prediction_at_t_next[i].numpy())
 
-            # append to target list
-            y.append(
-                prediction_at_t[i].numpy())
+        # update action value
+        prediction_at_t[i, action] = target
 
-            i += 1
+        # append to target list
+        y.append(
+            prediction_at_t[i].numpy())
 
-        X = np.array(X).reshape(batch_size, obs_count)
-        y = np.array(y)
+        i += 1
 
-        loss = []
+    X = np.array(X).reshape(batch_size, obs_count)  # trainig samples 
+    y = np.array(y)  # targets
 
+    loss_avg = 0
+    model.train()
     for epoch in range(epoch_count):
+
         # Forward pass
         y_pred = model(torch.tensor(X).float().to(opt.device))
         loss_val = loss_fn(y_pred, torch.tensor(y).to(opt.device))
-        loss.append(loss_val.item())
+        loss_avg += loss_val.item()
 
-        # Backward pass and optimization step
+        # Backward pass
         optimizer.zero_grad()
         loss_val.backward()
         optimizer.step()
+    
+    model.eval()
 
-    return loss
+    return loss_avg
 
 
-def run_iter(obs_t, epsilon):
+def forward_pass(obs_t, epsilon):
     """
 
     :param obs_t: observation at time t
@@ -195,7 +214,7 @@ if not args.pretrain and not args.localdemo:
 if args.pretrain:
 
     # optional WandB logging
-    if opt.wandb:
+    if args.wandb:
         key=opt.wandb_key
         wandb.login(key=key)
         wandb_group = "test"
@@ -216,6 +235,7 @@ if args.pretrain:
         bar = ShadyBar(bar_title, max=opt.episode_len)
 
         total_reward = 0
+        loss_avg = 0
 
         # wandb logging averages
         wandb_avg_r1 = 0
@@ -238,7 +258,8 @@ if args.pretrain:
                               max_crit_time=random.randint(30, 60),
                               max_allowed_temp_change=random.randint(1, 5))
 
-            obs_t, reward_value, r1, r2, r3 = run_iter(obs_t, epsilon)
+            # run forward pass and advance simulation
+            obs_t, reward_value, r1, r2, r3 = forward_pass(obs_t, epsilon)
             
             total_reward += reward_value
             
@@ -246,22 +267,31 @@ if args.pretrain:
             # train DQN and calculate loss
             if len(memory) > opt.batch_size:
                 
-                loss = experience_replay(model, opt.batch_size, memory, obs_count, opt.num_epochs)
-                if opt.wandb:
+                loss= experience_replay(model, opt.batch_size, memory, obs_count, opt.num_epochs)
+                loss_avg += loss
+
+                if args.wandb:
+
+                    # increment WandB averages
                     wandb_avg_r1 += r1
                     wandb_avg_r2 += r2
                     wandb_avg_r3 += r3
                     wandb_avg_r_t += reward_value
-                    wandb_avg_l += np.mean(np.asarray(loss))
+                    wandb_avg_l += loss/opt.num_epochs
 
-                    if ep_index % 50 == 0:
+                    if ep_index % opt.wandb_logging_freq == 0:
                 
-                        wandb.log({"Loss": wandb_avg_l/50,
-                        "Total reward": wandb_avg_r_t/50,
-                        "Temp range reward": wandb_avg_r1/50,
-                        "Energy reward": wandb_avg_r2/50,
-                        "Temp change reward": wandb_avg_r3/50})
+                        # log values at frequency {opt.wandb_logging_freq}
+                        wandb.log({
+                            "Loss": wandb_avg_l/opt.wandb_logging_freq,
+                            "Total reward": wandb_avg_r_t/opt.wandb_logging_freq,
+                            "Temp range reward": wandb_avg_r1/opt.wandb_logging_freq,
+                            "Energy reward": wandb_avg_r2/opt.wandb_logging_freq,
+                            "Temp change reward": wandb_avg_r3/opt.wandb_logging_freq,
+                            "Epsilon": epsilon
+                        })
 
+                        # reset WandB averages
                         wandb_avg_r1 = 0
                         wandb_avg_r2 = 0
                         wandb_avg_r3 = 0
@@ -274,7 +304,7 @@ if args.pretrain:
         bar.finish()
         avg_reward = total_reward / opt.episode_len
         print("\t - avg reward: %.4f" % avg_reward, "\n"
-                                                    "\t - avg loss: %.4f" % np.mean(np.asarray(loss)), "\n"
+                                                    "\t - avg loss: %.4f" % (loss_avg / opt.episode_len), "\n"
                                                                                                        "\t - epsilon: %.4f" % epsilon,
               "\n")
 
@@ -290,19 +320,44 @@ else:
     
     obs_t = environment.get_state()
     epsilon = 0
-    
-    # add progress bar for local demo
-    if args.localdemo:
-        bar_title = "Progress"
-        bar = ShadyBar(bar_title, max=opt.demo_len)
-
     total_reward = 0
+    loss_avg = 0
 
-    for i in range(opt.demo_len):
+    if args.localdemo:
+        demo_len = opt.local_demo_len
+        bar_title = "Progress"
+        bar = ShadyBar(bar_title, max=opt.local_demo_len)
+    else:
+        demo_len = opt.gui_demo_len
 
-        # receive data from GUI
+    for i in range(demo_len):
+
+        # if demo-ing with GUI, read and write to JSON file
         if not args.localdemo:
             time.sleep(opt.demo_sleep)
+            # LAKEvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+            
+            # default value is -5 when there is not enough data yet
+            avg_consumption = -5
+            if environment.step > 60:
+                last_60_energy = environment.H_greenhouse_heating[len(environment.H_greenhouse_heating) - 61: len(environment.H_greenhouse_heating) -1]
+                avg_consumption = np.mean(last_60_energy)
+
+            path = pathlib.Path(os.path.join(parent_dir, "public", "json", "gh" + str(args.gindex) + "_obs.json"))
+
+            # format elapsed time
+            day = "{:02d}".format(environment.day)
+            hour = "{:02d}".format(environment.hour)
+            minute = "{:02d}".format(environment.minute)
+            with open(path, 'w+') as f:
+                json.dump({"Greenhouse_temp": environment.greenhouse.temp, 
+                            "Outside_temp": environment.temp,
+                            "Time": str(day) +":"+str(hour) +":"+ str(minute),
+                            "Ventilation": int(environment.greenhouse.ventilation),
+                            "Heating": int(environment.greenhouse.heating),
+                            "Average_consumption": avg_consumption}, f)
+
+            # LAKE^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
             try:
                 path = pathlib.Path(os.path.join(parent_dir, "public", "json", "gh" + str(args.gindex) + "_settings.json"))
                 # LAKEvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
@@ -321,40 +376,18 @@ else:
             except FileNotFoundError:
                 print("settings not found")
                 continue
+        
+        # if demo-ing locally, just update the progressbar
         else:
             bar.next()  # update progress bar
 
-        obs_t, reward_value, r1, r2, r3 = run_iter(obs_t, epsilon)
-
+        # run forward pass and advance simulation
+        obs_t, reward_value, r1, r2, r3 = forward_pass(obs_t, epsilon)
         total_reward += reward_value
-
-        # train DQN and calculate loss
+        
         if len(memory) > opt.batch_size:
-            loss = experience_replay(model, opt.batch_size, memory, obs_count, opt.num_epochs)
-
-        # send data to GUI
-        if not args.localdemo:
-            # LAKEvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-            avg_consumption = -5
-            if environment.step > 60:
-                last_60_energy = environment.H_greenhouse_heating[len(environment.H_greenhouse_heating) - 61: len(environment.H_greenhouse_heating) -1]
-                avg_consumption = np.mean(last_60_energy)
-
-            path = pathlib.Path(os.path.join(parent_dir, "public", "json", "gh" + str(args.gindex) + "_obs.json"))
-
-            # format elapsed time
-            day = "{:02d}".format(environment.day)
-            hour = "{:02d}".format(environment.hour)
-            minute = "{:02d}".format(environment.minute)
-            with open(path, 'w+') as f:
-                json.dump({"Greenhouse_temp": environment.greenhouse.temp, 
-                            "Outside_temp": environment.temp,
-                            "Time": str(day) +" : "+str(hour) +" : "+ str(minute),
-                            "Ventilation": int(environment.greenhouse.ventilation),
-                            "Heating": int(environment.greenhouse.heating),
-                            "Average_consumption": avg_consumption}, f)
-
-            # LAKE^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            # train DQN and calculate loss
+            loss_avg += experience_replay(model, opt.batch_size, memory, obs_count, opt.num_epochs)
 
     # finish progress bar and plot environment for local demo
     if args.localdemo:

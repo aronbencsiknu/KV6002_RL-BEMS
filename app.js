@@ -1,3 +1,6 @@
+// ENABLE DATABASE LOGGING HERE
+const useDatabase = false;
+
 const express = require('express');
 const app = express();
 const path = require('path');
@@ -19,8 +22,6 @@ app.listen(3000, () => console.log('Visit http://localhost:3000/'));
 const { spawn } = require('child_process');
 
 const pyScripts = [];
-
-const useDatabase = false;
 
 const apiKey = "8a444a761bdf366d120c7f07191093b5";
 
@@ -48,8 +49,8 @@ app.post('/write_to_json', (req, res) => {
       if (err) {
         console.error(err);
         res.status(500).send(`Error writing data to file ${fileName}!`);
-      } else {
-  
+      }
+      else{
       }
     });
     // database code below
@@ -75,17 +76,17 @@ app.post('/write_to_json', (req, res) => {
               console.error('Error executing query: ', error);
               return;
             }
+            else{
+
+            }
             console.log('Data updated successfully!');
           });
         }
    
       });
     }
-    
- 
+     
   });
-
-
 
   current_num = parseInt(roomData.greenhouse_nums[0].current_num);
   prev_num = parseInt(roomData.greenhouse_nums[0].prev_num);
@@ -171,12 +172,9 @@ app.post('/write_to_json', (req, res) => {
     })
     .catch(error => {
       console.error('There was a problem getting weather data:', error);
-      res.status(500).send('Error getting weather data!');
+      //res.status(500).send('Error getting weather data!');
   });
-  
   res.status(200).send("done with file");
-
-
 });
 
 app.post('/write_obs_to_db', (req, res) => { 
@@ -198,21 +196,23 @@ app.post('/write_obs_to_db', (req, res) => {
         }
         if (results.length === 0) {
           // Room number does not exist, so insert a new row
-          pool.query('INSERT INTO historical (roomNumber,GREENHOUSE_TEMP,OUTSIDE_TEMP,AVG_CONSUMPTION,VENT,HEAT,Elapsed_time) VALUES (?, ?, ?, ?, ?, ?, ?)', [index + 1, obs.greenhouse_temp, obs.outside_temp, obs.avg_energy, obs.vent, obs.heating, obs.time], (error, results, fields) => {
+          pool.query('INSERT INTO historical (roomNumber,GREENHOUSE_TEMP,OUTSIDE_TEMP,AVG_CONSUMPTION,VENT,HEAT,Elapsed_time) VALUES (?, ?, ?, ?, ?, ?, ?)', [index + 1, obs.greenhouse_temp, obs.outside_temp, obs.avg_number, obs.vent, obs.heat, obs.time], (error, results, fields) => {
             if (error) {
               console.error('Error executing query: ', error);
               return;
             }
             console.log('Data inserted successfully!');
+            res.status(200).send("done with file");
           });
         } else {
           // Room number already exists, so update the existing row
-          pool.query('UPDATE historical SET GREENHOUSE_TEMP = ?, OUTSIDE_TEMP = ?, AVG_CONSUMPTION = ?, VENT = ?, HEAT= ?, Elapsed_time = ? WHERE roomNumber = ?', [obs.greenhouse_temp, obs.outside_temp, obs.avg_energy, obs.vent, obs.heating, obs.time,index + 1], (error, results, fields) => {
+          pool.query('UPDATE historical SET GREENHOUSE_TEMP = ?, OUTSIDE_TEMP = ?, AVG_CONSUMPTION = ?, VENT = ?, HEAT= ?, Elapsed_time = ? WHERE roomNumber = ?', [obs.greenhouse_temp, obs.outside_temp, obs.avg_number, obs.vent, obs.heat, obs.time,index + 1], (error, results, fields) => {
             if (error) {
               console.error('Error executing query: ', error);
               return;
             }
             console.log('Data updated successfully!');
+            res.status(200).send("done with file");
           });
         }
    

@@ -35,10 +35,10 @@ class Options(object):
         self.local_demo_len = 5000
 
         # length of the GUI demo is set to maxInt
-        self.gui_demo_len = 1000000
+        self.gui_demo_len = 10000000
 
         # defines how much the simulation is slowed down in the GUI demo
-        self.demo_sleep = 1
+        self.demo_sleep = 0.1
 
         # path to saved models from the root directory of the project
         self.path_to_model_from_root = "trained_models"

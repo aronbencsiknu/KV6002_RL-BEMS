@@ -391,7 +391,7 @@ else:
 
     # finish progress bar and plot environment for local demo
     if args.localdemo:
-        avg_reward = total_reward / opt.demo_len
+        avg_reward = total_reward / opt.local_demo_len
         print("\n\n avg reward: %.4f" % avg_reward)
         bar.finish()
         plotting.plot(environment)

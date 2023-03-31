@@ -94,11 +94,13 @@ app.post('/write_to_json', (req, res) => {
 
   if (current_num > prev_num){
     //create processes
-    
-    for (let i = prev_num; i < current_num; i++) {
+    console.log("test")
+    for (let i = prev_num; i <= current_num; i++) {
       const fileName = `./public/json/gh${i}_settings.json`;
+      console.log(i);
       if (!fs.existsSync(fileName)) {
         // If it doesn't exist, create it with some initial data
+        console.log("creating");
         let initialData = {
           minTemp: 20,
           maxTemp: 25,

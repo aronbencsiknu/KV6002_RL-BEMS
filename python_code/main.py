@@ -83,7 +83,11 @@ memory = deque([], maxlen=2500)  # experience memory
 # %% function definitions
 def experience_replay(model, batch_size, memory, obs_count):
     """
-    Creates the IIDD supervised data from the experience memory, to train the DQN
+    1. Selects random samples form the experience memory.
+    2. Generates labels using the Bellman optimality equation
+    3. Trains the DQN uaing the IIDD data
+
+    --------
     :param model: DQN network
     :param batch_size: size of random samples taken from memory
     :param memory: experience memory
@@ -156,7 +160,12 @@ def experience_replay(model, batch_size, memory, obs_count):
 
 def forward_pass(obs_t, epsilon):
     """
+    1. Gets an action either by exploring or exploiting, depending on the current epsilon value.
+    2. Advances simulation with the action.
+    3. Calculates reward.
+    4. Appends to experience memorx.
 
+    --------
     :param obs_t: observation at time t
     :param epsilon: current epsilon value
     :return: returns the observation at time t and the total reward
@@ -244,7 +253,7 @@ if args.pretrain:
         wandb_avg_l = 0
 
         for ep_index in range(opt.episode_len):
-            
+            """
             if ep_index % 500 == 0:
                 midpoint = random.randint(22, 23)
 
@@ -255,7 +264,7 @@ if args.pretrain:
                               crit_min_temp=midpoint - random.randint(3, 4),
                               max_crit_time=random.randint(30, 60),
                               max_allowed_temp_change=random.randint(1, 5))
-
+            """
             # run forward pass and advance simulation
             obs_t, reward_value, r1, r2, r3 = forward_pass(obs_t, epsilon)
             

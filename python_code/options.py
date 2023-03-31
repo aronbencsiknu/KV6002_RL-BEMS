@@ -44,7 +44,7 @@ class Options(object):
         self.path_to_model_from_root = "trained_models"
 
         # name to save a pre-trained model
-        self.model_name_save = "test_er1p1_var-temp"
+        self.model_name_save = "example"
 
         # name of the pre-trained model to load for local or GUI demo
         self.model_name_load = "example"

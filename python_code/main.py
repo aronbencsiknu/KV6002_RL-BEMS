@@ -180,7 +180,7 @@ def forward_pass(obs_t, epsilon):
     else:
         with torch.no_grad():
             action = model(torch.tensor(obs_t).float().to(opt.device)).to("cpu")
-        action_index = np.argmax(action)
+            action_index = np.argmax(action)
 
     # set actions
     if action_index == 0:
@@ -202,15 +202,18 @@ def forward_pass(obs_t, epsilon):
         max_temp=reward.max_temp, 
         min_temp=reward.min_temp, 
         crit_max_temp=reward.crit_max_temp, 
-        crit_min_temp=reward.crit_min_temp)
+        crit_min_temp=reward.crit_min_temp
+    )
 
     # get environment state
     obs_t_next = environment.get_state()
 
-    # calculate reward (will be a call to another file)
-    reward_value, r1, r2, r3 = reward.calculate_reward(environment.greenhouse.temp, environment.H_temp,
-                                           heating)  # input current variables here
-    
+    # calculate reward
+    reward_value, r1, r2, r3 = reward.calculate_reward(
+        environment.greenhouse.temp, 
+        environment.H_temp,
+        heating
+    )
 
     # append to experience memory
     memory.append((obs_t, action_index, reward_value, obs_t_next))
@@ -262,7 +265,7 @@ if args.pretrain:
         wandb_avg_l = 0
 
         for ep_index in range(opt.episode_len):
-            """
+            
             if ep_index % 500 == 0:
                 midpoint = random.randint(22, 23)
 
@@ -273,7 +276,7 @@ if args.pretrain:
                               crit_min_temp=midpoint - random.randint(3, 4),
                               max_crit_time=random.randint(30, 60),
                               max_allowed_temp_change=random.randint(1, 5))
-            """
+            
             # run forward pass and advance simulation
             obs_t, reward_value, r1, r2, r3 = forward_pass(obs_t, epsilon)
             
@@ -329,6 +332,8 @@ if args.pretrain:
     parent_dir = current_dir.parents[1]
     path = pathlib.Path(parent_dir / opt.path_to_model_from_root / opt.model_name_save)
     torch.save(model.state_dict(), path)
+    if args.wandb:
+        wandb.finish()
     plotting.plot(environment)
 
 # run local or GUI demo

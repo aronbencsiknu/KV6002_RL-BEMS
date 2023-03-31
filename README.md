@@ -14,7 +14,7 @@ After opening the root directory of the project in the command prompt, there are
 
 ### Pre-train
 To pre-train a reinforcement learning model, run ```python python_code/main.py -p```.
-This trains a model and saves it in the directory trained_model. To enable logging to [wandb.ai](https://wandb.ai/), include the ```-wb``` flag as ```python python_code/main.py -p -wb```
+This trains a model and saves it in the directory trained_model. To enable logging to [wandb.ai](https://wandb.ai/), include the ```-wb``` flag.
   
 ### Local demo
 To locally test a model, run ```python python_code/main.py -l```.
@@ -38,4 +38,3 @@ If causing too many errors, set variables h_logging and useDatabse to False
 
 Deep Q-learning is a type of a Reinforcement Learning (RL) algorithm, which is commonly employed to automate and optimize intricate decision-making processes. RL based energy management has been effectively applied in residential and commercial buildings, resulting in a significant decrease in electricity consumption. However, the potential of RL for greenhouse energy management has yet to be fully explored in the scientific literature. My assumption is that the opportunity for energy saving is even more substantial in the case of greenhouses, due to a more flexible, semi time dependent ideal temperature range.
 RL algorithms are typically pre-trained in simulated environments, utilizing a numerical reward signal to guide their learning. Subsequently, the pre-trained model can be transferred to real-world scenarios, allowing for quick adaptation to unique environmental features. Notably, RL has the capacity to take into account weather forecasts, representing a critical factor in the significant potential for energy savings.
-

@@ -174,7 +174,7 @@ function fetchData() {
         var span2 = document.createElement('span');
         outsideTempInput.appendChild(span1);
         outsideTempInput.appendChild(span2);
-        outsideTempInput.children[0].innerHTML =  "O Temp: ";
+        outsideTempInput.children[0].innerHTML =  "I Temp: ";
         outsideTempInput.children[1].innerHTML =  roomData.Greenhouse_temp.toFixed(1);
 
         insideTempInput.innerHTML = '';
@@ -182,7 +182,7 @@ function fetchData() {
         span2 = document.createElement('span');
         insideTempInput.appendChild(span1);
         insideTempInput.appendChild(span2);
-        insideTempInput.children[0].innerHTML =  "I Temp: ";
+        insideTempInput.children[0].innerHTML =  "O Temp: ";
         insideTempInput.children[1].innerHTML =  roomData.Outside_temp.toFixed(1);
 
         TimetInput.innerHTML = '';
@@ -289,7 +289,7 @@ function pushData(){
     });
 }
 if (h_logging){
-  setInterval(pushData, 60000);
+  setInterval(pushData, 30000);
 }
 
 function submitData() {

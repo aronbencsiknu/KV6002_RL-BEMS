@@ -245,8 +245,7 @@ if args.pretrain:
 
         for ep_index in range(opt.episode_len):
             
-            #if ep_index % 500 == 0:
-            if True == False:
+            if ep_index % 500 == 0:
                 midpoint = random.randint(22, 23)
 
                 # training DQN to deal with changing reward values
@@ -303,8 +302,8 @@ if args.pretrain:
         bar.finish()
         avg_reward = total_reward / opt.episode_len
         print("\t - avg reward: %.4f" % avg_reward, "\n"
-                                                    "\t - avg loss: %.4f" % (loss_avg / opt.episode_len), "\n"
-                                                                                                       "\t - epsilon: %.4f" % epsilon,
+              "\t - avg loss: %.4f" % (loss_avg / opt.episode_len), "\n"
+              "\t - epsilon: %.4f" % epsilon,
               "\n")
 
     current_dateTime = datetime.now()

@@ -4,7 +4,7 @@ This project was made as part of the KV6002 Team Project and Professionalism mod
 
 ## Installation instructions
 
-1. [Install Python 3](https://www.python.org/downloads/).  Ensure that the python command opens python3 by default.
+1. [Install Python 3](https://www.python.org/downloads/). Ensure that the ```python``` terminal command opens python3 by default.
 2. [Install Node.js](https://nodejs.org/en/download)
 3. Open the root directory of the project in the command prompt
 4. Type ```pip install -r requirements.txt``` to install the libraries required by Python
@@ -14,7 +14,7 @@ After opening the root directory of the project in the command prompt, there are
 
 ### Pre-train
 To pre-train a reinforcement learning model, run ```python python_code/main.py -p```.
-This trains a model and saves it in the directory trained_model
+This trains a model and saves it in the directory trained_model. To enable logging to [wandb.ai](https://wandb.ai/), include the ```-wb``` flag as ```python python_code/main.py -p -wb```
   
 ### Local demo
 To locally test a model, run ```python python_code/main.py -l```.

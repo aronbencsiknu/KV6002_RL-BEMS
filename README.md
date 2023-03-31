@@ -4,7 +4,7 @@ This project was made as part of the KV6002 Team Project and Professionalism mod
 
 ## Installation instructions
 
-1. [Install Python](https://www.python.org/downloads/)
+1. [Install Python 3](https://www.python.org/downloads/).  Ensure that the python command opens python3 by default.
 2. [Install Node.js](https://nodejs.org/en/download)
 3. Open the root directory of the project in the command prompt
 4. Type ```pip install -r requirements.txt``` to install the libraries required by Python

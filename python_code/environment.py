@@ -48,6 +48,12 @@ class Environment:
         self.H_hour = []
         self.H_minute = []
 
+        # reward data
+        self.max_temp = []
+        self.min_temp = []
+        self.crit_max_temp = []
+        self.crit_min_temp = []
+
     def get_time_from_step(self):
         day = math.floor(self.step / 1440)
         hour = math.floor((self.step - (1440 * day)) / 60)
@@ -170,7 +176,7 @@ class Environment:
         return data
 
     ######################################################################################################################################
-    def run(self, heating, cooling, steps, output_format):
+    def run(self, heating, cooling, steps, output_format, max_temp, min_temp, crit_max_temp, crit_min_temp):
         for step in range(steps):
             self.step += 1
 
@@ -184,46 +190,8 @@ class Environment:
 
             self.show_stats(
                 output_format)  # output to console. 'hourly' = each hour; 'all' = every step (every minute); 'none' = dont print
-
-
-# %%
-# PARAMETERS
-# cloudiness: How cloudy it is. expects values 0-1. Determines how often clouds obstruct the sky and how long they last
-# 0 = never 1 = always.
-#
-# WIP: this may be done so that cloudiness updates itself
-# energy_consumption: How much energy per tick when heating (idk what this number resembles tho)
-"""world = Environment(
-    0.1,  # cloudiness
-    0.5)  # energy_consumption"""
-
-##############################################################################################################################################
-# PARAMETERS
-# duration: One step is equal to one minute
-# verbose: 'hourly' = each hour; 'all' = every step (every minute); 'none' = dont print numerical data
-# simulation works the same despite what gets printed
-# NOTES
-# running world.run(...) multiple times will continue the simulation from the last step. initialize world = Environment() to restart
-"""world.run(
-    6000,  # duration
-    'none')  # verbose"""
-# %%
-
-"""rcParams['figure.figsize'] = 20, 5
-
-plt.plotting(world.H_temp, label='Outside temperature', linewidth='10', color="blue")
-
-plt.plotting([light * max(world.H_greenhouse_temp) for light in world.H_sunlight],
-         label='Sunlight', linewidth='2', color="orange")
-
-plt.plotting([energy / max(world.H_greenhouse_temp) for energy in world.H_greenhouse_energy_consumption],
-         label='Consumed energy', linewidth='5', color="red")
-
-plt.plotting(world.H_greenhouse_temp, label='Greenhouse temperature', linewidth='5', color="green")
-
-# plt.figure(figsize=(10, 5))
-custom_ticks, custom_tick_names = get_custom_xcticks(world.H_temp)
-plt.xticks(custom_ticks, custom_tick_names)
-# custom_xticks = get_custom_xticks(len(world.H_greenhouse_temp))
-plt.legend()
-plt.show()"""
+            
+            self.max_temp.append(max_temp)
+            self.min_temp.append(min_temp)
+            self.crit_max_temp.append(crit_max_temp)
+            self.crit_min_temp.append(crit_min_temp)

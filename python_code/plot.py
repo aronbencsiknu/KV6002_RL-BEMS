@@ -11,6 +11,11 @@ class Plot:
         self.heating_c = "red"
         self.ventilation_c = "blue"
 
+        self.max_temp_c = "lightcoral"
+        self.min_temp_c = "cornflowerblue"
+        self.crit_max_temp_c = "firebrick"
+        self.crit_min_temp_c = "darkblue"
+
     def plot(self, world):
 
         rcParams['figure.figsize'] = 20, 5
@@ -21,6 +26,11 @@ class Plot:
                  label='Sunlight', linewidth='1', color=self.sunlight_c, linestyle = '-')
 
         plt.plot(world.H_greenhouse_temp, label='Greenhouse temperature', linewidth='1', color=self.greenhouse_temp_c, linestyle = '-')
+
+        plt.plot(world.max_temp, label='Maximum temp', linewidth='1', color=self.max_temp_c, linestyle = '--')
+        plt.plot(world.min_temp, label='Minimum temp', linewidth='1', color=self.min_temp_c, linestyle = '--')
+        plt.plot(world.crit_max_temp, label='Maximum critical temp', linewidth='1', color=self.crit_max_temp_c, linestyle = '--')
+        plt.plot(world.crit_min_temp, label='Minimum critical temp', linewidth='1', color=self.crit_min_temp_c, linestyle = '--')
 
         # lake below
 
@@ -61,10 +71,14 @@ class Plot:
         tick_names = []
         last_tick_name = 0
         for step in range(len(historical_data)):
-            if step % 120 == 0:
+            name_freq = 240
+            if step % name_freq == 0:
                 ticks.append(step)
                 tick_names.append(last_tick_name)
-                last_tick_name += 2
+                last_tick_name += int(name_freq/60)
                 if last_tick_name >= 24:
                     last_tick_name = 0
+            elif step % 60 == 0:
+                ticks.append(step)
+                tick_names.append("")
         return ticks, tick_names

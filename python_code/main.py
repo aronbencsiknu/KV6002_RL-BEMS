@@ -193,7 +193,15 @@ def forward_pass(obs_t, epsilon):
         ventilation = False
 
     # advance simulation with actions
-    environment.run(heating=heating, cooling=ventilation, steps=1, output_format='none')
+    environment.run(
+        heating=heating, 
+        cooling=ventilation, 
+        steps=1, 
+        output_format='none', 
+        max_temp=reward.max_temp, 
+        min_temp=reward.min_temp, 
+        crit_max_temp=reward.crit_max_temp, 
+        crit_min_temp=reward.crit_min_temp)
 
     # get environment state
     obs_t_next = environment.get_state()

@@ -240,7 +240,7 @@ function fetchData() {
   }
   
 }
-setInterval(fetchData, 1000);
+setInterval(fetchData, 500);
 
 function pushData(){
   var env_data = {

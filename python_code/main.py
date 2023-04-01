@@ -72,9 +72,13 @@ if not args.pretrain:
     parent_dir = current_dir.parents[1]
     path = pathlib.Path(parent_dir / opt.path_to_model_from_root / opt.model_name_load)
     model.load_state_dict(torch.load(path, map_location=torch.device(opt.device)))
-    print("Model loaded")
 
-optimizer = torch.optim.AdamW(model.parameters(), lr=opt.learning_rate)  # AdamW optimizer
+    optimizer = torch.optim.AdamW(model.parameters(), lr=opt.demo_learning_rate)  # AdamW optimizer
+
+else:
+    optimizer = torch.optim.AdamW(model.parameters(), lr=opt.learning_rate)  # AdamW optimizer
+    scheduler = torch.optim.lr_scheduler.LinearLR(optimizer, start_factor=1.0, end_factor=0.1, total_iters=opt.num_episodes)  # learning rate scheduler
+
 model.eval()
 
 loss_fn = opt.loss_fn  # loss function
@@ -307,7 +311,8 @@ if args.pretrain:
                             "Temp range reward": wandb_avg_r1/opt.wandb_logging_freq,
                             "Energy reward": wandb_avg_r2/opt.wandb_logging_freq,
                             "Temp change reward": wandb_avg_r3/opt.wandb_logging_freq,
-                            "Epsilon": epsilon
+                            "Epsilon": epsilon,
+                            "Learning rate": optimizer.param_groups[0]["lr"]
                         })
 
                         # reset WandB averages
@@ -322,6 +327,8 @@ if args.pretrain:
 
         bar.finish()
         avg_reward = total_reward / opt.episode_len
+        scheduler.step()
+
         print("\t - avg reward: %.4f" % avg_reward, "\n"
               "\t - avg loss: %.4f" % (loss_avg / opt.episode_len), "\n"
               "\t - epsilon: %.4f" % epsilon,

@@ -52,6 +52,6 @@ class Options(object):
 
         #  set wether to log data to Weights&Biases
         self.wandb = False
-        self.wandb_key = "edfb94e4b9dca47c397a343d2829e9af262d9e32"
+        self.wandb_key = "INSERT_KEY_HERE"
         self.wandb_logging_freq = 200
         

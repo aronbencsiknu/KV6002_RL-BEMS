@@ -328,9 +328,10 @@ if args.pretrain:
         avg_reward = total_reward / opt.episode_len
         scheduler.step()
 
-        print("\t - avg reward: %.4f" % avg_reward, "\n"
-              "\t - avg loss: %.4f" % (loss_avg / opt.episode_len), "\n"
-              "\t - epsilon: %.4f" % epsilon,
+        print("\t - Avg. reward: %.4f" % avg_reward, "\n"
+              "\t - Avg. loss: %.4f" % (loss_avg / opt.episode_len), "\n"
+              "\t - Epsilon: %.4f" % epsilon, "\n"
+              "\t - Learning rate: %.6f" % optimizer.param_groups[0]["lr"], 
               "\n")
 
     current_dateTime = datetime.now()

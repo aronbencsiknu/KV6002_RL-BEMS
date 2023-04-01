@@ -14,7 +14,7 @@ class Options(object):
         self.batch_size = 16
 
         # define loss function
-        self.loss_fn = torch.nn.SmoothL1Loss()
+        self.loss_fn = torch.nn.SmoothL1Loss()  # Huber loss
 
         # number of episodes for pre-training
         self.num_episodes = 60
@@ -33,7 +33,7 @@ class Options(object):
         self.num_epochs = 1
 
         # length of the local demo
-        self.local_demo_len = 20000
+        self.local_demo_len = 5000
 
         # length of the GUI demo is set to maxInt
         self.gui_demo_len = 10000000
@@ -45,10 +45,10 @@ class Options(object):
         self.path_to_model_from_root = "trained_models"
 
         # name to save a pre-trained model
-        self.model_name_save = "trash01"
+        self.model_name_save = "test"
 
         # name of the pre-trained model to load for local or GUI demo
-        self.model_name_load = "example"
+        self.model_name_load = "e60_er13_eps04_small_net_lrsch01"
 
         #  set wether to log data to Weights&Biases
         self.wandb = False

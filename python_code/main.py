@@ -72,7 +72,6 @@ if not args.pretrain:
     parent_dir = current_dir.parents[1]
     path = pathlib.Path(parent_dir / opt.path_to_model_from_root / opt.model_name_load)
     model.load_state_dict(torch.load(path, map_location=torch.device(opt.device)))
-
     optimizer = torch.optim.AdamW(model.parameters(), lr=opt.demo_learning_rate)  # AdamW optimizer
 
 else:
@@ -352,7 +351,8 @@ else:
     loss_avg = 0
 
     if args.localdemo:
-        print("Model name: ", opt.model_name_load)
+        print("Model loaded.")
+        print("Model name: ", opt.model_name_load,"\n")
         demo_len = opt.local_demo_len
         bar_title = "Progress"
         bar = ShadyBar(bar_title, max=opt.local_demo_len)

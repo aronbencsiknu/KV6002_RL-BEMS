@@ -1,6 +1,6 @@
 import wandb
 class Reward:
-    def __init__(self, max_temp=25, min_temp=20, crit_max_temp=27, crit_min_temp=17, max_crit_time=70, max_allowed_temp_change=1):
+    def __init__(self, max_temp=25, min_temp=20, crit_max_temp=27, crit_min_temp=17, max_crit_time=120, max_allowed_temp_change=1):
 
         self.max_temp = max_temp
         self.min_temp = min_temp

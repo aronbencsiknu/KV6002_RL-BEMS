@@ -33,7 +33,7 @@ class Options(object):
         self.num_epochs = 1
 
         # length of the local demo
-        self.local_demo_len = 5000
+        self.local_demo_len = 10000
 
         # length of the GUI demo is set to maxInt
         self.gui_demo_len = 10000000
@@ -52,6 +52,6 @@ class Options(object):
 
         #  set wether to log data to Weights&Biases
         self.wandb = False
-        self.wandb_key = "ADD YOUR KEY HERE"
+        self.wandb_key = "edfb94e4b9dca47c397a343d2829e9af262d9e32"
         self.wandb_logging_freq = 200
         

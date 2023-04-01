@@ -1,6 +1,9 @@
 // ENABLE DATABASE LOGGING HERE
 const useDatabase = false;
 
+// ENABLE WEATHER DATA FETCHING HERE
+const fetchWeatherData = false;
+
 const express = require('express');
 const app = express();
 const path = require('path');
@@ -162,10 +165,12 @@ app.post('/write_to_json', (req, res) => {
       pyScripts[i].kill();
     } 
   }
-
+  res.status(200).send("done with file");
   // fetch from weather API
-  const url = `https://api.openweathermap.org/data/2.5/weather?q=${roomData.location[0].location}&appid=${apiKey}&units=metric`;
-  fetch(url)
+  
+  if(fetchWeatherData){
+    const url = `https://api.openweathermap.org/data/2.5/weather?q=${roomData.location[0].location}&appid=${apiKey}&units=metric`;
+    fetch(url)
     .then(response => response.json())
     .then(data => {
       console.log(data); // Log the weather information to the console
@@ -175,8 +180,9 @@ app.post('/write_to_json', (req, res) => {
     .catch(error => {
       console.error('There was a problem getting weather data:', error);
       //res.status(500).send('Error getting weather data!');
-  });
-  res.status(200).send("done with file");
+    });
+  }
+  
 });
 
 app.post('/write_obs_to_db', (req, res) => { 

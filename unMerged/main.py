@@ -49,13 +49,19 @@ if os.path.exists('manual_flag.txt'):
     with open("manual_flag.txt", "r") as f:
         manual_flag = f.read().strip()
         if manual_flag == "True":
-            args.manual = True 
+            args.manual = True
+            avg60arr_m = []
+            avg60arr_a = []
+            daily_avgs_m = 0
+            daily_avgs_a = 0 #initialise variables for compare
+            environment_2 = Environment(
+                                0.1,  # cloudiness
+                                0.5)  # energy_consumption
+            with open('efficiency.txt', 'w') as file:
+                file.write('') #Clear compare file
+
    
-
 atexit.register(lambda: os.remove('manual_flag.txt')) # delete the file after termination
-
-
-
 
 # from plotting import Plot
 opt = Options()
@@ -70,12 +76,12 @@ environment = Environment(
     0.1,  # cloudiness
     0.5)  # energy_consumption
 
-
 observation = environment.get_state()  # get initial observation of the environment
 obs_count = len(observation)  # get the number of environment observations
 
 # number of possible actions (heat on, vent closed; vent open, heat off; both off)
 action_count = 3 
+
 
 model = DQN(obs_count, action_count).to(opt.device)
 if not args.pretrain:
@@ -160,6 +166,8 @@ def experience_replay(model, batch_size, memory, obs_count, epoch_count):
     return loss
 
 
+
+
 def run_iter(obs_t, epsilon):
     """
     
@@ -176,20 +184,46 @@ def run_iter(obs_t, epsilon):
         with torch.no_grad():
             action = model(torch.tensor(obs_t).float().to(opt.device)).to("cpu")
         action_index = np.argmax(action)
-
-
     if args.manual:  
-        parser.set_defaults(manual=True)    
-        heating, ventilation = manuelModel.Manuel(environment.greenhouse.temp, environment.H_temp) 
+        heating, ventilation = manuelModel.Manuel(environment.greenhouse.temp, environment.H_temp)
+        environment.run(heating=heating, cooling=ventilation, steps=1, output_format='none')
         avg_consumption = -5
-        if environment.step > 60:
-            last_60_energy = environment.H_greenhouse_heating[len(environment.H_greenhouse_heating) - 61: len(environment.H_greenhouse_heating) -1]
+        if environment.step % 60 == 0 and environment.step > 59:
+            last_60_energy = environment.H_greenhouse_heating[-61:-1]
             avg_consumption = np.mean(last_60_energy)
-        if avg_consumption != -5:
-            file = open('energy.txt', 'a')
-            file.write(str(avg_consumption)+',') #save the energy use to txt for later use
-            file.close()
-                 
+            avg60arr_m.append(avg_consumption)
+        
+        if args.gindex == 2:
+            if action_index == 0:
+                heating = True
+                ventilation = False
+            elif action_index == 1:
+                heating = False
+                ventilation = True
+            else:
+                heating = False
+                ventilation = False
+            environment_2.run(heating=heating, cooling=ventilation, steps=1, output_format='none')
+            avg_consumption_auto = -5
+            if environment_2.step % 60 == 0 and environment_2.step > 59:
+                last_60_energy_auto = environment_2.H_greenhouse_heating[-61:-1]
+                avg_consumption_auto = np.mean(last_60_energy_auto)
+                avg60arr_a.append(avg_consumption_auto)
+
+        if environment.step % 1440 == 0 and environment.step > 1:    
+            daily_avgs_a = np.average(avg60arr_a)
+            daily_avgs_m = np.average(avg60arr_m)
+            if daily_avgs_m > daily_avgs_a:
+                greaterEff = "Rule-Based Model"
+            elif daily_avgs_m < daily_avgs_a:
+                greaterEff = "Reinforced Learning Model"
+            else:
+                greaterEff = "Even Efficiency"
+            with open('efficiency.txt', 'a') as file:
+                file.write('Manual Daily Average: ' + str(daily_avgs_a) + '\n')
+                file.write('AI Daily Average: ' + str(daily_avgs_m) + '\n')
+                file.write(str(greaterEff) + " had greater efficiency" + '\n')
+    
     else:
         if action_index == 0:
             heating = True
@@ -201,7 +235,7 @@ def run_iter(obs_t, epsilon):
             heating = False
             ventilation = False
     # advance simulation with actions
-    environment.run(heating=heating, cooling=ventilation, steps=1, output_format='none')
+        environment.run(heating=heating, cooling=ventilation, steps=1, output_format='none')
 
     # get environment state
     obs_t_next = environment.get_state()
@@ -222,11 +256,7 @@ def run_iter(obs_t, epsilon):
 # run app.js with manuel control call
 if args.manual:
     subprocess.run(["node", "app.js"])
-    
-    
-
-
-
+ 
 # uhm, this does something with the GUI, I'm not sure, i didn't write this
 if not args.pretrain and not args.localdemo:
     import requests

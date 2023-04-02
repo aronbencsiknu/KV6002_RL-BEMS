@@ -38,6 +38,10 @@ class Options(object):
         # length of the GUI demo is set to maxInt
         self.gui_demo_len = 10000000
 
+        # change the desired temps in the reward function during training 
+        # (intended to increase model flexibility to changing desired temps using demo)
+        self.ch_rew = False
+
         # defines how much the simulation is slowed down in the GUI demo
         self.demo_sleep = 0.01
 

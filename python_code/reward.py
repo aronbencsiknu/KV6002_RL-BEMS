@@ -51,7 +51,7 @@ class Reward:
 
         # reward weighing
         r1_w = 1.0  # temperature range
-        r2_w = 1.3  # energy
+        r2_w = 1.1  # energy
         r3_w = 1.0  # temp change
 
         # Calculate total reward

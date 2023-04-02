@@ -149,7 +149,6 @@ app.post('/write_to_json', (req, res) => {
      
         });
       }
-      console.log("Spawned index "+i)
       pyScripts.push(spawn('python', ['python_code/main.py', '-g', i]));
     
     } 

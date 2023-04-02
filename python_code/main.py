@@ -205,8 +205,6 @@ def forward_pass(obs_t, epsilon):
         crit_min_temp=reward.crit_min_temp
     )
 
-    
-
     # get environment state
     obs_t_next = environment.get_state()
 
@@ -268,7 +266,7 @@ if args.pretrain:
 
         for ep_index in range(opt.episode_len):
             
-            if ep_index % 500 == 0:
+            if opt.ch_rew and ep_index % 500 == 0:
                 midpoint = random.randint(22, 23)
 
                 # training DQN to deal with changing reward values
@@ -319,7 +317,6 @@ if args.pretrain:
                         wandb_avg_r3 = 0
                         wandb_avg_r_t = 0
                         wandb_avg_l = 0
-
 
             bar.next()  # update progress bar
 

@@ -22,6 +22,7 @@ from plot import Plot  # import environment plotting
 from model import DQN  # import DQN model
 from manuelModel import manuelControl #import manual model
 
+
 # %% define variables
 
 # parse arguments
@@ -46,22 +47,27 @@ if args.manual:
         f.write("True")
 
 if os.path.exists('manual_flag.txt'):
+    avg60arr_m = []
+    avg60arr_a = []
     with open("manual_flag.txt", "r") as f:
         manual_flag = f.read().strip()
         if manual_flag == "True":
             args.manual = True
-            avg60arr_m = []
-            avg60arr_a = []
-            daily_avgs_m = 0
-            daily_avgs_a = 0 #initialise variables for compare
+            control = manuelControl()
             environment_2 = Environment(
                                 0.1,  # cloudiness
                                 0.5)  # energy_consumption
+            
             with open('efficiency.txt', 'w') as file:
                 file.write('') #Clear compare file
 
+ 
+
+
    
 atexit.register(lambda: os.remove('manual_flag.txt')) # delete the file after termination
+
+
 
 # from plotting import Plot
 opt = Options()
@@ -178,7 +184,6 @@ def run_iter(obs_t, epsilon):
     # explore
     if np.random.random() < epsilon:
         action_index = random.randint(0, action_count - 1)
-
     # exploit
     else:
         with torch.no_grad():
@@ -186,13 +191,8 @@ def run_iter(obs_t, epsilon):
         action_index = np.argmax(action)
     if args.manual:  
         heating, ventilation = manuelModel.Manuel(environment.greenhouse.temp, environment.H_temp)
+
         environment.run(heating=heating, cooling=ventilation, steps=1, output_format='none')
-        avg_consumption = -5
-        if environment.step % 60 == 0 and environment.step > 59:
-            last_60_energy = environment.H_greenhouse_heating[-61:-1]
-            avg_consumption = np.mean(last_60_energy)
-            avg60arr_m.append(avg_consumption)
-        
         if args.gindex == 2:
             if action_index == 0:
                 heating = True
@@ -204,27 +204,8 @@ def run_iter(obs_t, epsilon):
                 heating = False
                 ventilation = False
             environment_2.run(heating=heating, cooling=ventilation, steps=1, output_format='none')
-            avg_consumption_auto = -5
-            if environment_2.step % 60 == 0 and environment_2.step > 59:
-                last_60_energy_auto = environment_2.H_greenhouse_heating[-61:-1]
-                avg_consumption_auto = np.mean(last_60_energy_auto)
-                avg60arr_a.append(avg_consumption_auto)
-
-        if environment.step % 1440 == 0 and environment.step > 1:    
-            daily_avgs_a = np.average(avg60arr_a)
-            daily_avgs_m = np.average(avg60arr_m)
-            if daily_avgs_m > daily_avgs_a:
-                greaterEff = "Rule-Based Model"
-            elif daily_avgs_m < daily_avgs_a:
-                greaterEff = "Reinforced Learning Model"
-            else:
-                greaterEff = "Even Efficiency"
-            with open('efficiency.txt', 'a') as file:
-                file.write('Manual Daily Average: ' + str(daily_avgs_a) + '\n')
-                file.write('AI Daily Average: ' + str(daily_avgs_m) + '\n')
-                file.write(str(greaterEff) + " had greater efficiency" + '\n')
-    
-    else:
+        manuelModel.energyConsump(environment,avg60arr_m,environment_2,avg60arr_a)
+    elif not args.manual:
         if action_index == 0:
             heating = True
             ventilation = False
@@ -240,10 +221,11 @@ def run_iter(obs_t, epsilon):
     # get environment state
     obs_t_next = environment.get_state()
 
+
     # calculate reward (will be a call to another file)
     reward_value, r1, r2, r3 = reward.calculate_reward(environment.greenhouse.temp, environment.H_temp,
-                                           heating)  # input current variables here
-    
+                                           heating) 
+                                            # input current variables here
 
     # append to experience memory
     memory.append((obs_t, action_index, reward_value, obs_t_next))
@@ -251,6 +233,8 @@ def run_iter(obs_t, epsilon):
 
     return obs_t, reward_value, r1, r2, r3
 
+
+# %%
 
 # %% program run
 # run app.js with manuel control call
@@ -415,6 +399,7 @@ else:
 
         # send data to GUI
         if not args.localdemo:
+            
             # LAKEvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
             avg_consumption = -5
             if environment.step > 60:

@@ -11,7 +11,6 @@ class DQN(nn.Module):
         self.fc3 = nn.Linear(20, 20)
         self.fc4 = nn.Linear(20, action_count)
         self.activation = nn.LeakyReLU()
-        self.dropout = nn.Dropout(p=0.2)
 
     def forward(self, x):
 
@@ -21,12 +20,10 @@ class DQN(nn.Module):
 
         # 1st hidden layer
         x = self.fc2(x)
-        #x = self.dropout(x)
         x = self.activation(x)
 
         # 2nd hidden layer
         x = self.fc3(x)
-        #x = self.dropout(x)
         x = self.activation(x)
 
         # output layer

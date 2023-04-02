@@ -26,7 +26,7 @@ class Options(object):
         self.beta = 0.4
 
         # learning rate for the optimizer
-        self.learning_rate = 0.0001
+        self.learning_rate = 0.001
         self.demo_learning_rate = 0.0001
 
         # number of epochs in each episode iteration
@@ -39,7 +39,7 @@ class Options(object):
         self.gui_demo_len = 10000000
 
         # defines how much the simulation is slowed down in the GUI demo
-        self.demo_sleep = 0.1
+        self.demo_sleep = 0.01
 
         # path to saved models from the root directory of the project
         self.path_to_model_from_root = "trained_models"
@@ -52,6 +52,6 @@ class Options(object):
 
         #  set wether to log data to Weights&Biases
         self.wandb = False
-        self.wandb_key = "INSERT_KEY_HERE"
+        self.wandb_key = "edfb94e4b9dca47c397a343d2829e9af262d9e32"
         self.wandb_logging_freq = 200
         

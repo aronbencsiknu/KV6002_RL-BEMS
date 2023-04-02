@@ -3,7 +3,6 @@ import json
 import pathlib
 import numpy as np
 import torch
-import torch.nn as nn
 from collections import deque
 import random
 from progress.bar import ShadyBar
@@ -54,7 +53,6 @@ plotting = Plot()
 environment = Environment(
     0.1,  # cloudiness
     0.5)  # energy_consumption
-
 
 observation = environment.get_state()  # get initial observation of the environment
 obs_count = len(observation)  # get the number of environment observations
@@ -184,7 +182,6 @@ def forward_pass(obs_t, epsilon):
         with torch.no_grad():
             action = model(torch.tensor(obs_t).float().to(opt.device)).to("cpu")
             action_index = np.argmax(action)
-
     # set actions
     if action_index == 0:
         heating = True
@@ -207,6 +204,8 @@ def forward_pass(obs_t, epsilon):
         crit_max_temp=reward.crit_max_temp, 
         crit_min_temp=reward.crit_min_temp
     )
+
+    
 
     # get environment state
     obs_t_next = environment.get_state()
@@ -240,7 +239,7 @@ if args.pretrain:
     if args.wandb:
         key=opt.wandb_key
         wandb.login(key=key)
-        wandb_group = "test"
+        wandb_group = "demo"
 
         wandb.init(project="RL_GEMS", 
                 group=wandb_group, entity="aronbencsik", 

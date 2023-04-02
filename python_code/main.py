@@ -235,6 +235,13 @@ if args.pretrain:
 
     # optional WandB logging
     if args.wandb:
+
+        print("\n#########################################")
+        print("#########################################\n")
+        print("!!IMPORTANT!! You need to create a WandB account and paste your atuhorization key in options.py to use this.")
+        print("\n#########################################")
+        print("#########################################")
+
         key=opt.wandb_key
         wandb.login(key=key)
         wandb_group = "demo"
